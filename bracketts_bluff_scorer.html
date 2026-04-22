@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Brackett's Bluff — Live Scoring</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #1a2e1a; --fern: #4a7c4a; --lime: #8bc34a;
+    --birdie: #43a047; --eagle: #1565c0; --bogey: #e65100; --double: #b71c1c; --par: #424242;
+    --card: rgba(255,255,255,0.97); --shadow: 0 4px 24px rgba(0,0,0,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--forest); min-height: 100vh; color: #1a1a1a; }
+  body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 20% 0%, rgba(74,124,74,0.4) 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(45,74,45,0.6) 0%, transparent 60%); pointer-events: none; z-index: 0; }
+  .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 0 80px; }
+
+  .header { background: var(--forest); padding: 20px 20px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); position: sticky; top: 0; z-index: 100; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .course-name { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--lime); line-height: 1; }
+  .round-badge { background: rgba(139,195,74,0.15); border: 1px solid rgba(139,195,74,0.3); color: var(--lime); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; }
+  .hole-progress { display: flex; gap: 3px; }
+  .prog-dot { width: 14px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.12); transition: background 0.3s; cursor: pointer; }
+  .prog-dot.done { background: var(--lime); }
+  .prog-dot.active { background: rgba(139,195,74,0.55); }
+  .status-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.4); padding: 6px 20px 2px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #666; }
+  .status-dot.online { background: var(--lime); }
+  .status-dot.sending { background: #f9a825; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  /* LOCKED BADGE — shown when URL token is detected */
+  .locked-banner { background: rgba(139,195,74,0.12); border: 1px solid rgba(139,195,74,0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .lock-icon { width: 20px; height: 20px; background: var(--lime); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; color: var(--forest); font-weight: 700; }
+  .locked-text { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.4; }
+  .locked-text strong { color: var(--lime); }
+
+  /* SETUP */
+  .setup-screen { padding: 24px 20px; }
+  .setup-title { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 3px; color: white; line-height: 1; margin-bottom: 4px; }
+  .setup-sub { color: rgba(255,255,255,0.45); font-size: 14px; margin-bottom: 28px; }
+  .setup-card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .setup-card h3 { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--fern); margin-bottom: 14px; }
+  .field-row { display: flex; flex-direction: column; gap: 10px; }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-label { font-size: 12px; color: #666; font-weight: 500; }
+  .field-locked { font-size: 15px; font-weight: 600; color: var(--forest); padding: 11px 14px; background: #f0f5f0; border-radius: 10px; border: 1.5px solid #c8ddc8; }
+  .field-locked-note { font-size: 11px; color: #888; margin-top: 3px; }
+  input[type=text] { width: 100%; padding: 11px 14px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: #1a1a1a; background: white; outline: none; transition: border-color 0.2s; }
+  input:focus { border-color: var(--fern); }
+  .player-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-start { width: 100%; padding: 16px; background: var(--lime); color: var(--forest); border: none; border-radius: 14px; font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; cursor: pointer; margin-top: 6px; transition: transform 0.15s; }
+  .btn-start:active { transform: scale(0.98); }
+
+  /* SCORING */
+  .scoring-screen { padding: 16px 20px; display: none; }
+  .hole-card { background: var(--card); border-radius: 20px; padding: 22px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .hole-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .hole-number { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 1; color: var(--forest); }
+  .hole-info { text-align: right; padding-top: 8px; }
+  .hole-par { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--fern); line-height: 1; }
+  .hole-dist { font-size: 13px; color: #999; margin-top: 3px; }
+  .team-label { text-align: center; margin-bottom: 20px; }
+  .team-names { font-size: 16px; font-weight: 600; color: #222; }
+  .team-sub { font-size: 12px; color: #999; margin-top: 2px; }
+  .score-entry { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .score-stepper { display: flex; align-items: center; border: 2px solid #e0e0e0; border-radius: 16px; overflow: hidden; background: white; }
+  .step-btn { width: 64px; height: 64px; border: none; background: transparent; font-size: 28px; font-weight: 300; color: #444; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; -webkit-user-select: none; user-select: none; }
+  .step-btn:active { background: #f0f0f0; }
+  .score-display { width: 80px; text-align: center; font-size: 42px; font-weight: 700; color: #1a1a1a; border-left: 1.5px solid #e8e8e8; border-right: 1.5px solid #e8e8e8; line-height: 64px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
+  .score-badge-large { font-size: 13px; font-weight: 700; padding: 6px 18px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; }
+  .badge-eagle  { background: #e3f2fd; color: var(--eagle); }
+  .badge-birdie { background: #e8f5e9; color: var(--birdie); }
+  .badge-par    { background: #f5f5f5; color: var(--par); }
+  .badge-bogey  { background: #fff3e0; color: var(--bogey); }
+  .badge-double { background: #ffebee; color: var(--double); }
+  .btn-submit-hole { width: 100%; padding: 15px; background: var(--forest); color: var(--lime); border: none; border-radius: 14px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; cursor: pointer; transition: transform 0.15s; margin-bottom: 12px; }
+  .btn-submit-hole:active { transform: scale(0.98); }
+  .btn-submit-hole:disabled { opacity: 0.4; }
+  .btn-submit-hole.submitted { background: var(--birdie); color: white; }
+  .totals-card { background: var(--card); border-radius: 16px; padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .totals-title { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--fern); margin-bottom: 10px; }
+  .totals-row { display: flex; justify-content: space-between; align-items: center; }
+  .totals-team { font-size: 14px; color: #444; }
+  .totals-right { display: flex; gap: 10px; align-items: center; }
+  .totals-strokes { font-size: 14px; color: #888; }
+  .totals-vs { font-size: 16px; font-weight: 700; min-width: 36px; text-align: right; }
+  .vs-under { color: var(--birdie); } .vs-over { color: var(--bogey); } .vs-even { color: var(--par); }
+  .mini-scorecard { background: var(--card); border-radius: 16px; padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 14px; overflow-x: auto; }
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .mini-table th { color: #888; font-weight: 500; padding: 4px 6px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+  .mini-table td { padding: 5px 6px; text-align: center; border-bottom: 1px solid #f8f8f8; }
+  .mini-table td.hcol { font-weight: 500; color: #555; }
+  .mini-table td.pcol { color: #bbb; }
+  .cell-eagle  { background: #e3f2fd; color: var(--eagle); font-weight: 700; border-radius: 4px; }
+  .cell-birdie { background: #e8f5e9; color: var(--birdie); font-weight: 700; border-radius: 4px; }
+  .cell-bogey  { background: #fff3e0; color: var(--bogey); border-radius: 4px; }
+  .cell-double { background: #ffebee; color: var(--double); border-radius: 4px; }
+  .nav-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .btn-nav { flex: 1; padding: 12px; border: 1.5px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+  .btn-nav:active { background: rgba(255,255,255,0.15); }
+  .btn-nav:disabled { opacity: 0.3; cursor: default; }
+  .btn-nav.primary { background: var(--lime); color: var(--forest); border-color: transparent; font-weight: 600; }
+
+  /* FINAL */
+  .final-screen { padding: 20px; display: none; }
+  .final-card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .final-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; color: var(--forest); margin-bottom: 4px; }
+  .final-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+  .final-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; }
+  .final-names { font-size: 16px; font-weight: 600; color: #222; }
+  .final-names small { display: block; font-size: 12px; color: #888; font-weight: 400; margin-top: 2px; }
+  .final-score-block { text-align: right; }
+  .final-total { font-size: 28px; font-family: 'Bebas Neue', sans-serif; color: var(--forest); line-height: 1; }
+  .final-diff { font-size: 14px; font-weight: 700; margin-top: 2px; }
+
+  /* ERROR SCREEN */
+  .error-screen { padding: 40px 20px; text-align: center; display: none; }
+  .error-icon { font-size: 48px; margin-bottom: 16px; }
+  .error-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: white; letter-spacing: 2px; margin-bottom: 8px; }
+  .error-msg { color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6; }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--forest); color: var(--lime); padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 500; border: 1px solid rgba(139,195,74,0.3); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-top">
+      <div class="course-name">Brackett's Bluff</div>
+      <div class="round-badge" id="round-label">Live Scoring</div>
+    </div>
+    <div class="hole-progress" id="hole-progress"></div>
+  </div>
+  <div class="status-row">
+    <div class="status-dot online" id="status-dot"></div>
+    <span id="status-text">Ready</span>
+  </div>
+
+  <!-- ERROR SCREEN -->
+  <div class="error-screen" id="error-screen">
+    <div class="error-icon">&#9888;</div>
+    <div class="error-title">Invalid Link</div>
+    <p class="error-msg">This scoring link is not valid.<br>Please use the link provided by your Tournament Director.</p>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div class="setup-screen" id="setup-screen" style="display:none">
+    <div class="setup-title">Card Setup</div>
+    <p class="setup-sub" id="setup-sub">Brackett's Bluff · Par 55 · 18 holes</p>
+
+    <!-- Locked group banner (shown when URL token present) -->
+    <div class="locked-banner" id="locked-banner" style="display:none">
+      <div class="lock-icon">&#128274;</div>
+      <div class="locked-text">This card is locked to <strong id="locked-group-name">—</strong>. Only your group can submit scores on this link.</div>
+    </div>
+
+    <div class="setup-card">
+      <h3>Tournament Info</h3>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Tournament / Event Name</label>
+          <input type="text" id="tourn-name" placeholder="e.g. LKNITP Disc Bash 2026" />
+        </div>
+        <div class="field-group" id="group-field-wrapper">
+          <label class="field-label">Card / Group</label>
+          <div class="field-locked" id="group-locked-display" style="display:none">—</div>
+          <p class="field-locked-note" id="group-locked-note" style="display:none">Assigned by Tournament Director — cannot be changed</p>
+          <input type="text" id="group-name" placeholder="e.g. Card 1" style="display:none" />
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-card">
+      <h3>Team Players</h3>
+      <div class="player-grid">
+        <div class="field-group">
+          <label class="field-label">Player 1</label>
+          <input type="text" id="p1" placeholder="Name" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Player 2</label>
+          <input type="text" id="p2" placeholder="Name" />
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-start" onclick="startRound()">Start Round</button>
+  </div>
+
+  <!-- SCORING SCREEN -->
+  <div class="scoring-screen" id="scoring-screen">
+    <div class="hole-card">
+      <div class="hole-header">
+        <div class="hole-number" id="hole-num-display">1</div>
+        <div class="hole-info">
+          <div class="hole-par" id="hole-par-display">Par 3</div>
+          <div class="hole-dist" id="hole-dist-display">276 ft</div>
+        </div>
+      </div>
+      <div class="team-label">
+        <div class="team-names" id="team-names-display">—</div>
+        <div class="team-sub">Best shot counts — one team score</div>
+      </div>
+      <div class="score-entry">
+        <div class="score-stepper">
+          <button class="step-btn" onclick="changeScore(-1)">&#8722;</button>
+          <div class="score-display" id="score-val">3</div>
+          <button class="step-btn" onclick="changeScore(1)">+</button>
+        </div>
+        <div class="score-badge-large badge-par" id="score-badge">Par</div>
+      </div>
+    </div>
+
+    <button class="btn-submit-hole" id="submit-hole-btn" onclick="submitHole()">Submit Hole 1</button>
+
+    <div class="totals-card">
+      <div class="totals-title">Running Total</div>
+      <div class="totals-row">
+        <div class="totals-team" id="totals-team-name">—</div>
+        <div class="totals-right">
+          <span class="totals-strokes" id="totals-strokes">—</span>
+          <span class="totals-vs vs-even" id="totals-vs">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mini-scorecard">
+      <div class="totals-title">Scorecard</div>
+      <table class="mini-table">
+        <thead><tr><th>Hole</th><th>Par</th><th>Score</th><th>Hole</th><th>Par</th><th>Score</th></tr></thead>
+        <tbody id="mini-body"></tbody>
+      </table>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-nav" id="btn-prev" onclick="prevHole()">&#8592; Back</button>
+      <button class="btn-nav primary" id="btn-next" onclick="nextHole()">Next Hole &#8594;</button>
+    </div>
+  </div>
+
+  <!-- FINAL SCREEN -->
+  <div class="final-screen" id="final-screen">
+    <div class="final-card">
+      <div class="final-title">Round Complete</div>
+      <p class="final-sub" id="final-sub"></p>
+      <div class="final-row">
+        <div class="final-names">
+          <span id="final-names"></span>
+          <small id="final-group"></small>
+        </div>
+        <div class="final-score-block">
+          <div class="final-total" id="final-total">—</div>
+          <div class="final-diff" id="final-diff"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-start" onclick="newRound()">New Card</button>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG — paste your deployed URLs here
+// ============================================================
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const AIRTABLE_TOKEN  = 'YOUR_AIRTABLE_PAT_HERE';
+const AIRTABLE_BASE   = 'YOUR_AIRTABLE_BASE_ID';
+const AIRTABLE_TABLE  = 'Scores';
+
+// ============================================================
+// VALID GROUP TOKENS
+// TD generates this list before the event.
+// Format: { token: { group, tourn } }
+// Each group gets a unique URL: https://your-site.netlify.app?g=TOKEN
+// ============================================================
+const GROUP_TOKENS = {
+  'card01-a3x9': { group: 'Card 1',  tourn: 'LKNITP Disc Bash 2026' },
+  'card02-b7k2': { group: 'Card 2',  tourn: 'LKNITP Disc Bash 2026' },
+  'card03-c4m8': { group: 'Card 3',  tourn: 'LKNITP Disc Bash 2026' },
+  'card04-d1p5': { group: 'Card 4',  tourn: 'LKNITP Disc Bash 2026' },
+  'card05-e6r3': { group: 'Card 5',  tourn: 'LKNITP Disc Bash 2026' },
+  'card06-f9s7': { group: 'Card 6',  tourn: 'LKNITP Disc Bash 2026' },
+  'card07-g2t1': { group: 'Card 7',  tourn: 'LKNITP Disc Bash 2026' },
+  'card08-h5u4': { group: 'Card 8',  tourn: 'LKNITP Disc Bash 2026' },
+  'card09-j8v6': { group: 'Card 9',  tourn: 'LKNITP Disc Bash 2026' },
+  'card10-k3w9': { group: 'Card 10', tourn: 'LKNITP Disc Bash 2026' },
+  'card11-l7x2': { group: 'Card 11', tourn: 'LKNITP Disc Bash 2026' },
+  'card12-m1y5': { group: 'Card 12', tourn: 'LKNITP Disc Bash 2026' },
+  'card13-n4z8': { group: 'Card 13', tourn: 'LKNITP Disc Bash 2026' },
+  'card14-p6a3': { group: 'Card 14', tourn: 'LKNITP Disc Bash 2026' },
+  'card15-q9b7': { group: 'Card 15', tourn: 'LKNITP Disc Bash 2026' },
+  'card16-r2c1': { group: 'Card 16', tourn: 'LKNITP Disc Bash 2026' },
+  'card17-s5d4': { group: 'Card 17', tourn: 'LKNITP Disc Bash 2026' },
+  'card18-t8e6': { group: 'Card 18', tourn: 'LKNITP Disc Bash 2026' },
+};
+
+// ============================================================
+// COURSE DATA
+// ============================================================
+const HOLES = [
+  {n:1,dist:276,par:3},{n:2,dist:181,par:3},{n:3,dist:383,par:4},
+  {n:4,dist:252,par:3},{n:5,dist:268,par:3},{n:6,dist:246,par:3},
+  {n:7,dist:298,par:3},{n:8,dist:357,par:3},{n:9,dist:333,par:3},
+  {n:10,dist:274,par:3},{n:11,dist:125,par:3},{n:12,dist:223,par:3},
+  {n:13,dist:208,par:3},{n:14,dist:202,par:3},{n:15,dist:239,par:3},
+  {n:16,dist:279,par:3},{n:17,dist:181,par:3},{n:18,dist:242,par:3}
+];
+const PAR_TOTAL = HOLES.reduce((a,h)=>a+h.par,0);
+
+// ============================================================
+// STATE
+// ============================================================
+let S = {
+  tournName:'', groupName:'', token:'', p1:'', p2:'',
+  scores: new Array(18).fill(null),
+  submitted: new Array(18).fill(false),
+  currentHole: 0
+};
+
+// ============================================================
+// INIT — read URL token on page load
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('g');
+
+  if (!token) {
+    // No token — show error, no access
+    show('error-screen');
+    return;
+  }
+
+  const group = GROUP_TOKENS[token];
+  if (!group) {
+    // Token not in list — invalid
+    show('error-screen');
+    return;
+  }
+
+  // Valid token — pre-fill and lock group fields
+  S.token = token;
+
+  document.getElementById('tourn-name').value = group.tourn;
+  document.getElementById('group-locked-display').textContent = group.group;
+  document.getElementById('group-locked-display').style.display = 'block';
+  document.getElementById('group-locked-note').style.display = 'block';
+  document.getElementById('group-name').style.display = 'none';
+  document.getElementById('locked-banner').style.display = 'flex';
+  document.getElementById('locked-group-name').textContent = group.group;
+
+  show('setup-screen');
+});
+
+// ============================================================
+// SETUP
+// ============================================================
+function startRound() {
+  const p1 = document.getElementById('p1').value.trim();
+  const p2 = document.getElementById('p2').value.trim();
+  if (!p1 || !p2) { showToast('Enter both player names'); return; }
+
+  const group = GROUP_TOKENS[S.token];
+  S.tournName  = document.getElementById('tourn-name').value.trim() || group.tourn;
+  S.groupName  = group.group;
+  S.p1 = p1; S.p2 = p2;
+  S.scores     = new Array(18).fill(null);
+  S.submitted  = new Array(18).fill(false);
+  S.currentHole = 0;
+
+  document.getElementById('round-label').textContent = S.groupName;
+  document.getElementById('team-names-display').textContent = p1 + ' & ' + p2;
+  document.getElementById('totals-team-name').textContent   = p1 + ' & ' + p2;
+
+  hide('setup-screen');
+  show('scoring-screen');
+  buildProgress(); buildMini(); renderHole();
+}
+
+// ============================================================
+// SCREEN HELPERS
+// ============================================================
+function show(id) { document.getElementById(id).style.display = 'block'; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
+
+// ============================================================
+// PROGRESS DOTS
+// ============================================================
+function buildProgress() {
+  const el = document.getElementById('hole-progress');
+  el.innerHTML = '';
+  HOLES.forEach((_,i) => {
+    const d = document.createElement('div');
+    d.className='prog-dot'; d.id='dot-'+i; d.onclick=()=>goToHole(i); el.appendChild(d);
+  });
+  updateProgress();
+}
+function updateProgress() {
+  HOLES.forEach((_,i) => {
+    const d = document.getElementById('dot-'+i);
+    if(d) d.className='prog-dot'+(S.submitted[i]?' done':'')+(i===S.currentHole?' active':'');
+  });
+}
+
+// ============================================================
+// MINI SCORECARD
+// ============================================================
+function buildMini() {
+  const tb = document.getElementById('mini-body');
+  tb.innerHTML = '';
+  for(let i=0;i<9;i++){
+    const h1=HOLES[i], h2=HOLES[i+9];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="hcol">${h1.n}</td><td class="pcol">${h1.par}</td><td id="mc-${i}">&#8212;</td>`+
+                 `<td class="hcol">${h2.n}</td><td class="pcol">${h2.par}</td><td id="mc-${i+9}">&#8212;</td>`;
+    tb.appendChild(tr);
+  }
+}
+function updateMini() {
+  HOLES.forEach((h,i) => {
+    const c = document.getElementById('mc-'+i); if(!c) return;
+    const s = S.scores[i];
+    if(s===null){c.textContent='—';c.className='';return;}
+    c.textContent=s;
+    const d=s-h.par;
+    c.className=d<=-2?'cell-eagle':d===-1?'cell-birdie':d===1?'cell-bogey':d>=2?'cell-double':'';
+  });
+}
+
+// ============================================================
+// RENDER HOLE
+// ============================================================
+function renderHole() {
+  const h = HOLES[S.currentHole];
+  document.getElementById('hole-num-display').textContent = h.n;
+  document.getElementById('hole-par-display').textContent = 'Par '+h.par;
+  document.getElementById('hole-dist-display').textContent = h.dist+' ft';
+  if(S.scores[S.currentHole]===null) S.scores[S.currentHole]=h.par;
+  updateScoreDisplay(S.scores[S.currentHole], h.par);
+  const btn=document.getElementById('submit-hole-btn');
+  if(S.submitted[S.currentHole]){btn.textContent='&#10003; Hole '+h.n+' Submitted';btn.classList.add('submitted');}
+  else{btn.textContent='Submit Hole '+h.n;btn.classList.remove('submitted');}
+  btn.disabled=false;
+  renderTotals(); updateProgress(); updateNavBtns();
+}
+
+// ============================================================
+// SCORE CHANGE
+// ============================================================
+function changeScore(delta) {
+  const h=HOLES[S.currentHole];
+  S.scores[S.currentHole]=Math.max(1,Math.min(12,(S.scores[S.currentHole]??h.par)+delta));
+  updateScoreDisplay(S.scores[S.currentHole],h.par);
+  renderTotals(); updateMini();
+}
+function updateScoreDisplay(score,par) {
+  document.getElementById('score-val').textContent=score;
+  const b=getBadge(score,par);
+  const el=document.getElementById('score-badge');
+  el.textContent=b.label; el.className='score-badge-large '+b.cls;
+}
+function getBadge(s,p){
+  const d=s-p;
+  if(d<=-2)return{cls:'badge-eagle',label:'Eagle'};
+  if(d===-1)return{cls:'badge-birdie',label:'Birdie'};
+  if(d===0)return{cls:'badge-par',label:'Par'};
+  if(d===1)return{cls:'badge-bogey',label:'Bogey'};
+  return{cls:'badge-double',label:'+'+d};
+}
+
+// ============================================================
+// RUNNING TOTALS
+// ============================================================
+function renderTotals(){
+  let total=0,par=0,played=0;
+  HOLES.forEach((h,i)=>{if(S.scores[i]!==null){total+=S.scores[i];par+=h.par;played++;}});
+  const diff=played>0?total-par:null;
+  const sign=diff>0?'+':'';
+  const str=diff===null?'—':diff===0?'E':`${sign}${diff}`;
+  const cls=diff===null?'':diff<0?'vs-under':diff>0?'vs-over':'vs-even';
+  const el=document.getElementById('totals-vs');
+  el.textContent=str; el.className='totals-vs '+cls;
+  document.getElementById('totals-strokes').textContent=played>0?total+' strokes':'—';
+}
+
+// ============================================================
+// SUBMIT HOLE
+// ============================================================
+async function submitHole(){
+  const idx=S.currentHole, h=HOLES[idx];
+  const btn=document.getElementById('submit-hole-btn');
+  if(S.scores[idx]===null){showToast('Enter a score first');return;}
+  setStatus('sending','Sending...');
+  btn.disabled=true;
+  const payload={
+    tournament:S.tournName, group:S.groupName, token:S.token,
+    players:S.p1+' & '+S.p2,
+    hole:h.n, par:h.par, dist:h.dist,
+    score:S.scores[idx], vsPar:S.scores[idx]-h.par,
+    timestamp:new Date().toISOString()
+  };
+  let ok=false;
+  try{
+    if(APPS_SCRIPT_URL!=='YOUR_APPS_SCRIPT_URL_HERE'){
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',
+        headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    }
+    ok=true;
+  }catch(e){console.warn('Apps Script:',e);}
+  try{
+    if(AIRTABLE_TOKEN!=='YOUR_AIRTABLE_PAT_HERE'){
+      await fetch('https://api.airtable.com/v0/'+AIRTABLE_BASE+'/'+AIRTABLE_TABLE,{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+AIRTABLE_TOKEN,'Content-Type':'application/json'},
+        body:JSON.stringify({fields:{
+          Tournament:payload.tournament, Group:payload.group, Players:payload.players,
+          Hole:payload.hole, Par:payload.par, Score:payload.score,
+          VsPar:payload.vsPar, Timestamp:payload.timestamp
+        }})
+      });
+    }
+    ok=true;
+  }catch(e){console.warn('Airtable:',e);}
+  S.submitted[idx]=true;
+  btn.textContent='&#10003; Hole '+h.n+' Submitted'; btn.classList.add('submitted'); btn.disabled=false;
+  setStatus('online',ok?'Scores sent':'Saved locally');
+  showToast(ok?'Hole '+h.n+' submitted &#10003;':'Hole '+h.n+' saved locally');
+  updateProgress(); updateMini();
+  setTimeout(()=>{if(idx<17)nextHole();else showFinal();},900);
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function nextHole(){if(S.currentHole<17){S.currentHole++;renderHole();}else showFinal();}
+function prevHole(){if(S.currentHole>0){S.currentHole--;renderHole();}}
+function goToHole(i){S.currentHole=i;renderHole();}
+function updateNavBtns(){
+  document.getElementById('btn-prev').disabled=S.currentHole===0;
+  document.getElementById('btn-next').textContent=S.currentHole===17?'Finish Round':'Next Hole &#8594;';
+}
+
+// ============================================================
+// FINAL SCREEN
+// ============================================================
+function showFinal(){
+  hide('scoring-screen'); show('final-screen');
+  const total=S.scores.reduce((a,s)=>a+(s||0),0);
+  const diff=total-PAR_TOTAL;
+  const sign=diff>0?'+':'';
+  const str=diff===0?'Even par':`${sign}${diff}`;
+  const cls=diff<0?'vs-under':diff>0?'vs-over':'vs-even';
+  document.getElementById('final-names').textContent=S.p1+' & '+S.p2;
+  document.getElementById('final-group').textContent=S.groupName+' · '+S.tournName;
+  document.getElementById('final-total').textContent=total;
+  const de=document.getElementById('final-diff');
+  de.textContent=str; de.className='final-diff '+cls;
+  document.getElementById('final-sub').textContent=
+    S.submitted.filter(Boolean).length+'/18 holes submitted';
+}
+function newRound(){
+  hide('final-screen'); show('setup-screen');
+  document.getElementById('hole-progress').innerHTML='';
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.innerHTML=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+function setStatus(type,msg){
+  document.getElementById('status-dot').className='status-dot '+type;
+  document.getElementById('status-text').textContent=msg;
+}
+</script>
+</body>
+</html>
