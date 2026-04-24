@@ -248,6 +248,9 @@ function colorVsParColumn(sheet) {
 // POPULATE GROUP TOKENS SHEET
 // TD runs this once to generate the URL reference sheet
 // ============================================================
+
+//TODO Add QR function somewhere in here
+
 function populateGroupTokens() {
   const ss    = SpreadsheetApp.getActiveSpreadsheet();
   ensureSheets(ss);
@@ -259,7 +262,7 @@ function populateGroupTokens() {
   }
 
   // Get the deployed web app URL — replace with yours after deployment
-  const BASE_URL = 'YOUR_NETLIFY_URL_HERE';
+  const BASE_URL = 'lknitpdiscgolf.netlify.app';
 
   const tokens = [
     {token:'card01-a3x9', group:'Card 1'},
