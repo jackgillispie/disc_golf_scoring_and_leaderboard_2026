@@ -1,0 +1,18 @@
+# netlify.toml
+
+[build]
+  # This is where your index.html and script.js are.
+  # Netlify will serve these to the user's browser.
+  publish = "public"
+
+[functions]
+  # This is where your save-score.js is hidden.
+  # Netlify will bundle this with Axios and deploy it to a secure server.
+  directory = "netlify/functions"
+
+[[redirects]]
+  # This is an optional "fail-safe."
+  # It ensures that all traffic to /api/ is routed to your functions.
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

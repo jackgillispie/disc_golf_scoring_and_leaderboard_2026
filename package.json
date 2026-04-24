@@ -1,0 +1,11 @@
+{
+  "name": "game-scoring-app",
+  "version": "1.0.0",
+  "description": "Disc golf scorer with one-page inline JS, Airtable, AppsScript",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^17.4.2"
+  },
+  "author": "Jack Gillispie",
+  "license": "ISC"
+}
