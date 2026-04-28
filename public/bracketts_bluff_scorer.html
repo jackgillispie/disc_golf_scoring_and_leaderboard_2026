@@ -884,12 +884,10 @@
             // ============================================================
             const APPS_SCRIPT_URL =
                 "https://script.google.com/macros/s/AKfycbyCOQacQxiJsQvwBl7PvzkYHHWXEHkVMbdhk6UNgi4xsWBOMnGZcCgBVJmDdXzKPOXh2g/exec";
-            const netlify_domain = "sprightly-sopapillas-e19cec";
+            const netlify_domain = "lknitpdiscgolf.netlify.app";
             const netlify_function_name = "save-score";
             let netlify_function_url = `https://${netlify_domain}/.netlify/functions/${netlify_function_name}`;
-            // for testing
-            netlify_function_url =
-                "https://spiffy-rugelach-9b6b89.netlify.app/.netlify/functions/save-score";
+
             // ============================================================
             // VALID GROUP TOKENS
             // TD generates this list before the event.
@@ -1323,27 +1321,71 @@
                 setStatus("sending", "Sending...");
                 btn.disabled = true;
                 const payload = {
-                    tournament: S.tournName,
-                    group: S.groupName,
-                    token: S.token,
-                    players: S.p1 + " & " + S.p2,
-                    hole: h.n,
-                    par: h.par,
-                    dist: h.dist,
-                    score: S.scores[idx],
-                    vsPar: S.scores[idx] - h.par,
-                    timestamp: new Date().toISOString(),
+                    Tournament: S.tournName,
+                    Group: S.groupName,
+                    Token: S.token,
+                    Players: S.p1 + " & " + S.p2,
+                    Hole: h.n,
+                    Par: h.par,
+                    Dist: h.dist,
+                    Score: S.scores[idx],
+                    VsPar: S.scores[idx] - h.par,
+                    Timestamp: new Date().toISOString(),
                 };
 
                 //
                 let ok = false;
+
+                //    4.28
+
+                // must return a promise if APP_SCRIPT_URL exists or not
+                const appScriptPromise = APPS_SCRIPT_URL
+                    ? fetch(APPS_SCRIPT_URL, {
+                          method: "POST",
+                          mode: "no-cors",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                      })
+                    : Promise.resolve();
+
+                const netlifiyPromise = netlify_function_url
+                    ? fetch(netlify_function_url, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                      })
+                    : Promise.resolve();
+
                 try {
+                    await Promise.allSettled([
+                        appScriptPromise,
+                        netlifiyPromise,
+                    ]);
+                    ok = true;
+                } catch (e) {
+                    console.warn("Network error", e);
+                }
+                // ^^^ 4.28
+                /*
+                try {
+
                     if (APPS_SCRIPT_URL) {
                         await fetch(APPS_SCRIPT_URL, {
                             method: "POST",
                             mode: "no-cors",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(payload),
+                            body: JSON.stringify({
+                                fields: {
+                                    Tournament: payload.tournament,
+                                    Group: payload.group,
+                                    Players: payload.players,
+                                    Hole: payload.hole,
+                                    Par: payload.par,
+                                    Score: payload.score,
+                                    VsPar: payload.vsPar,
+                                    Timestamp: payload.timestamp,
+                                },
+                            }),
                         });
                     }
                     ok = true;
@@ -1376,6 +1418,8 @@
                 } catch (e) {
                     console.warn("Error sending to serverless function:", e);
                 }
+
+               */
                 S.submitted[idx] = true;
 
                 // add to localStorage
@@ -1393,6 +1437,8 @@
                 );
                 updateProgress();
                 updateMini();
+
+                // wait so user can see the visual changes
                 setTimeout(() => {
                     if (idx < 17) nextHole();
                     else showFinal();
