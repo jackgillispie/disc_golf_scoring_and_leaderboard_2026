@@ -882,10 +882,11 @@
             // ============================================================
             // CONFIG — paste your deployed URLs here
             // ============================================================
-            const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE";
-            const AIRTABLE_TOKEN = "YOUR_AIRTABLE_PAT_HERE";
-            const AIRTABLE_BASE = "YOUR_AIRTABLE_BASE_ID";
-            const AIRTABLE_TABLE = "Scores";
+            const APPS_SCRIPT_URL =
+                "https://script.google.com/macros/s/AKfycbyi2F9Xpo8Bw6oRuvtyrjVbPTumVsJTLp8QfjuwPZCHl3EMuo-jLPUWgq8CI37TtEq10w/exec";
+            const netlify_function_name = "save-score";
+            const netlify_domain = "rad-bublanina-4d627c.netlify.app";
+            let netlify_function_url = `https://${netlify_domain}/.netlify/functions/${netlify_function_name}`;
 
             // ============================================================
             // VALID GROUP TOKENS
@@ -996,58 +997,102 @@
             // ============================================================
             // STATE
             // ============================================================
-            let S = {
-                tournName: "",
-                groupName: "",
-                token: "",
-                p1: "",
-                p2: "",
-                scores: new Array(18).fill(null),
-                submitted: new Array(18).fill(false),
-                currentHole: 0,
-            };
-
+            //
+            // Check if game_state_cache exists
+            // create if not
+            // use values otherwise (handles local data on player refresh or page exit)
+            //
+            let S;
+            game_state_cache = localStorage.getItem("game_state_cache");
+            // checks if not present
+            if (!game_state_cache) {
+                S = {
+                    tournName: "",
+                    groupName: "",
+                    token: "",
+                    p1: "",
+                    p2: "",
+                    scores: new Array(18).fill(null),
+                    submitted: new Array(18).fill(false),
+                    currentHole: 0,
+                };
+            } else {
+                S = JSON.parse(game_state_cache);
+            }
             // ============================================================
             // INIT — read URL token on page load
             // ============================================================
             window.addEventListener("DOMContentLoaded", () => {
-                const params = new URLSearchParams(window.location.search);
-                const token = params.get("g");
+                // adding this to get to last hole when game_state_cache has info in it
 
-                if (!token) {
-                    // No token — show error, no access
-                    show("error-screen");
-                    return;
+                if (game_state_cache) {
+                    if (JSON.parse(game_state_cache).p1) {
+                        document.getElementById("round-label").textContent =
+                            S.groupName;
+                        document.getElementById(
+                            "team-names-display",
+                        ).textContent = S.p1 + " & " + S.p2;
+                        document.getElementById(
+                            "totals-team-name",
+                        ).textContent = S.p1 + " & " + S.p2;
+
+                        hide("setup-screen");
+                        show("scoring-screen");
+                        buildProgress();
+                        buildMini();
+                        updateMini();
+                        renderHole();
+                    }
                 }
 
-                const group = GROUP_TOKENS[token];
-                if (!group) {
-                    // Token not in list — invalid
-                    show("error-screen");
-                    return;
+                //
+                else {
+                    const params = new URLSearchParams(window.location.search);
+                    const token = params.get("g");
+
+                    if (!token) {
+                        // No token — show error, no access
+                        show("error-screen");
+                        return;
+                    }
+
+                    const group = GROUP_TOKENS[token];
+                    if (!group) {
+                        // Token not in list — invalid
+                        show("error-screen");
+                        return;
+                    }
+
+                    // Valid token — pre-fill and lock group fields
+                    S.token = token;
+
+                    document.getElementById("tourn-name").value = group.tourn;
+                    document.getElementById(
+                        "group-locked-display",
+                    ).textContent = group.group;
+                    document.getElementById(
+                        "group-locked-display",
+                    ).style.display = "block";
+                    document.getElementById("group-locked-note").style.display =
+                        "block";
+                    document.getElementById("group-name").style.display =
+                        "none";
+                    document.getElementById("locked-banner").style.display =
+                        "flex";
+                    document.getElementById("locked-group-name").textContent =
+                        group.group;
+
+                    show("setup-screen");
                 }
-
-                // Valid token — pre-fill and lock group fields
-                S.token = token;
-
-                document.getElementById("tourn-name").value = group.tourn;
-                document.getElementById("group-locked-display").textContent =
-                    group.group;
-                document.getElementById("group-locked-display").style.display =
-                    "block";
-                document.getElementById("group-locked-note").style.display =
-                    "block";
-                document.getElementById("group-name").style.display = "none";
-                document.getElementById("locked-banner").style.display = "flex";
-                document.getElementById("locked-group-name").textContent =
-                    group.group;
-
-                show("setup-screen");
             });
 
             // ============================================================
             // SETUP
             // ============================================================
+            //
+            //
+            // Adding submit to localStorage so the user gets saved
+            //
             function startRound() {
                 const p1 = document.getElementById("p1").value.trim();
                 const p2 = document.getElementById("p2").value.trim();
@@ -1066,6 +1111,10 @@
                 S.scores = new Array(18).fill(null);
                 S.submitted = new Array(18).fill(false);
                 S.currentHole = 0;
+
+                //
+                localStorage.setItem("game_state_cache", JSON.stringify(S));
+                //
 
                 document.getElementById("round-label").textContent =
                     S.groupName;
@@ -1173,7 +1222,7 @@
                 updateScoreDisplay(S.scores[S.currentHole], h.par);
                 const btn = document.getElementById("submit-hole-btn");
                 if (S.submitted[S.currentHole]) {
-                    btn.textContent = "&#10003; Hole " + h.n + " Submitted";
+                    btn.textContent = "\u2713 Hole " + h.n + " Submitted";
                     btn.classList.add("submitted");
                 } else {
                     btn.textContent = "Submit Hole " + h.n;
@@ -1188,12 +1237,20 @@
             // ============================================================
             // SCORE CHANGE
             // ============================================================
+            //
+            // Think I need to sync to localStorage here as well...
+            //
             function changeScore(delta) {
                 const h = HOLES[S.currentHole];
                 S.scores[S.currentHole] = Math.max(
                     1,
                     Math.min(12, (S.scores[S.currentHole] ?? h.par) + delta),
                 );
+
+                // add to localStorage
+                localStorage.setItem("game_state_cache", JSON.stringify(S));
+                //
+
                 updateScoreDisplay(S.scores[S.currentHole], h.par);
                 renderTotals();
                 updateMini();
@@ -1250,6 +1307,9 @@
             // ============================================================
             // SUBMIT HOLE
             // ============================================================
+            //
+            // Adding localStorage mechanism to persist on refresh
+            //
             async function submitHole() {
                 const idx = S.currentHole,
                     h = HOLES[idx];
@@ -1261,65 +1321,112 @@
                 setStatus("sending", "Sending...");
                 btn.disabled = true;
                 const payload = {
-                    tournament: S.tournName,
-                    group: S.groupName,
-                    token: S.token,
-                    players: S.p1 + " & " + S.p2,
-                    hole: h.n,
-                    par: h.par,
-                    dist: h.dist,
-                    score: S.scores[idx],
-                    vsPar: S.scores[idx] - h.par,
-                    timestamp: new Date().toISOString(),
+                    Tournament: S.tournName,
+                    Group: S.groupName,
+                    Token: S.token,
+                    Players: S.p1 + " & " + S.p2,
+                    Hole: h.n,
+                    Par: h.par,
+                    Dist: h.dist,
+                    Score: S.scores[idx],
+                    VsPar: S.scores[idx] - h.par,
+                    Timestamp: new Date().toISOString(),
                 };
+
+                //
                 let ok = false;
+
+                //    4.28
+
+                // must return a promise if APP_SCRIPT_URL exists or not
+                const appScriptPromise = APPS_SCRIPT_URL
+                    ? fetch(APPS_SCRIPT_URL, {
+                          method: "POST",
+                          mode: "no-cors",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                      })
+                    : Promise.resolve();
+
+                const netlifiyPromise = netlify_function_url
+                    ? fetch(netlify_function_url, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                      })
+                    : Promise.resolve();
+
                 try {
-                    if (APPS_SCRIPT_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
+                    await Promise.allSettled([
+                        appScriptPromise,
+                        netlifiyPromise,
+                    ]);
+                    ok = true;
+                } catch (e) {
+                    console.warn("Network error", e);
+                }
+                // ^^^ 4.28
+                /*
+                try {
+
+                    if (APPS_SCRIPT_URL) {
                         await fetch(APPS_SCRIPT_URL, {
                             method: "POST",
                             mode: "no-cors",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(payload),
+                            body: JSON.stringify({
+                                fields: {
+                                    Tournament: payload.tournament,
+                                    Group: payload.group,
+                                    Players: payload.players,
+                                    Hole: payload.hole,
+                                    Par: payload.par,
+                                    Score: payload.score,
+                                    VsPar: payload.vsPar,
+                                    Timestamp: payload.timestamp,
+                                },
+                            }),
                         });
                     }
                     ok = true;
                 } catch (e) {
                     console.warn("Apps Script:", e);
                 }
+
+                //## CHANGED THIS TO SEND TO SERVERLESS FUNCTION ON NETLIFY
+
                 try {
-                    if (AIRTABLE_TOKEN !== "YOUR_AIRTABLE_PAT_HERE") {
-                        await fetch(
-                            "https://api.airtable.com/v0/" +
-                                AIRTABLE_BASE +
-                                "/" +
-                                AIRTABLE_TABLE,
-                            {
-                                method: "POST",
-                                headers: {
-                                    Authorization: "Bearer " + AIRTABLE_TOKEN,
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    fields: {
-                                        Tournament: payload.tournament,
-                                        Group: payload.group,
-                                        Players: payload.players,
-                                        Hole: payload.hole,
-                                        Par: payload.par,
-                                        Score: payload.score,
-                                        VsPar: payload.vsPar,
-                                        Timestamp: payload.timestamp,
-                                    },
-                                }),
+                    await fetch(netlify_function_url, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            fields: {
+                                Tournament: payload.tournament,
+                                Group: payload.group,
+                                Players: payload.players,
+                                Hole: payload.hole,
+                                Par: payload.par,
+                                Score: payload.score,
+                                VsPar: payload.vsPar,
+                                Timestamp: payload.timestamp,
                             },
-                        );
-                    }
+                        }),
+                    });
                     ok = true;
                 } catch (e) {
-                    console.warn("Airtable:", e);
+                    console.warn("Error sending to serverless function:", e);
                 }
+
+               */
                 S.submitted[idx] = true;
-                btn.textContent = "&#10003; Hole " + h.n + " Submitted";
+
+                // add to localStorage
+                localStorage.setItem("game_state_cache", JSON.stringify(S));
+                //
+
+                btn.textContent = "\u2713 Hole " + h.n + " Submitted";
                 btn.classList.add("submitted");
                 btn.disabled = false;
                 setStatus("online", ok ? "Scores sent" : "Saved locally");
@@ -1330,6 +1437,8 @@
                 );
                 updateProgress();
                 updateMini();
+
+                // wait so user can see the visual changes
                 setTimeout(() => {
                     if (idx < 17) nextHole();
                     else showFinal();
@@ -1359,7 +1468,9 @@
                 document.getElementById("btn-prev").disabled =
                     S.currentHole === 0;
                 document.getElementById("btn-next").textContent =
-                    S.currentHole === 17 ? "Finish Round" : "Next Hole &#8594;";
+                    S.currentHole === 17
+                        ? "Finish Round"
+                        : "Next Hole  \u2192 ";
             }
 
             // ============================================================

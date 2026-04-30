@@ -3,7 +3,7 @@
 [build]
   # This is where your index.html and script.js are.
   # Netlify will serve these to the user's browser.
-  publish = "public"
+  publish = "app"
 
 [functions]
   # This is where your save-score.js is hidden.
@@ -16,3 +16,14 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+[[redirects]]
+  # Redirects all traffic to index.html for "Clean URLs"
+  # and Single Page Application (SPA) functionality
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+  # Netlify handles query parameters automatically.
+  # This rule preserves them by default (e.g., /?id=123)
+  force = false
