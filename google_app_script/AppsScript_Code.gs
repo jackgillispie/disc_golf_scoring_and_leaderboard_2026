@@ -30,7 +30,7 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
 
     // Token validation — reject submissions without valid token
-    if (!data.token || !VALID_TOKENS.includes(data.token)) {
+    if (!data.Token || !VALID_TOKENS.includes(data.Token)) {
       return respond({ status: 'error', message: 'Invalid group token' });
     }
 
@@ -40,10 +40,21 @@ function doPost(e) {
     rebuildLeaderboard(ss);
     rebuildHoleSummary(ss);
 
-    return respond({ status: 'ok', hole: data.hole, group: data.group });
+    // to send on the frontend, recommended to wrap the getResponseText
+    // in ContentService.createTextOutput(JSON...
+
+    return ContentService.createTextOutput(
+    JSON.stringify({status: "ok", "message": `Score for hole ${data.hole} recorded`}))
+    .setMimeType(ContentService.MimeType.JSON);
+
+    // return respond({ status: 'ok', hole: data.hole, group: data.group });
 
   } catch(err) {
-    return respond({ status: 'error', message: err.toString() });
+
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
+    .setMimeType(ContentService.MimeType.JSON)
+
+    // return respond({ status: 'error', message: err.toString() });
   }
 }
 

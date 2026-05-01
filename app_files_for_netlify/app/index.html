@@ -112,6 +112,18 @@
             .prog-dot.active {
                 background: rgba(139, 195, 74, 0.55);
             }
+            // 4.30 new style for pending status
+            .prog-dot.pending {
+                background: #f9a825;
+            }
+            // 4.30
+
+            // 5.1 adding selector for statustext b/c something broke in css2
+
+            #status-text {
+                color: white;
+            }
+
             .status-row {
                 display: flex;
                 align-items: center;
@@ -126,6 +138,11 @@
                 border-radius: 50%;
                 background: #666;
             }
+
+            .status-dot.error {
+                background: red;
+            }
+
             .status-dot.online {
                 background: var(--lime);
             }
@@ -423,6 +440,10 @@
             }
             .btn-submit-hole.submitted {
                 background: var(--birdie);
+                color: white;
+            }
+            .btn-submit-hole.pending {
+                backgorund: purple;
                 color: white;
             }
             .totals-card {
@@ -882,8 +903,13 @@
             // ============================================================
             // CONFIG — paste your deployed URLs here
             // ============================================================
+
+            // 5.1 testing for CORS 'fix'
+            // const APPS_SCRIPT_URL =
+            //    "https://script.google.com/macros/s/AKfycbyi2F9Xpo8Bw6oRuvtyrjVbPTumVsJTLp8QfjuwPZCHl3EMuo-jLPUWgq8CI37TtEq10w/exec";
+
             const APPS_SCRIPT_URL =
-                "https://script.google.com/macros/s/AKfycbyi2F9Xpo8Bw6oRuvtyrjVbPTumVsJTLp8QfjuwPZCHl3EMuo-jLPUWgq8CI37TtEq10w/exec";
+                "https://script.google.com/macros/s/AKfycbzJCidQPDPpUENslMLF3YNhU5no4fXWNmBZvOR6ZGwpTcR-7jh2v2LrY7HaROnOb0pRww/exec";
             const netlify_function_name = "save-score";
             const netlify_domain = "rad-bublanina-4d627c.netlify.app";
             let netlify_function_url = `https://${netlify_domain}/.netlify/functions/${netlify_function_name}`;
@@ -1084,6 +1110,8 @@
 
                     show("setup-screen");
                 }
+                // 5.1. hoping this line will retry on refresh
+                processQueue();
             });
 
             // ============================================================
@@ -1156,12 +1184,14 @@
                 updateProgress();
             }
             function updateProgress() {
+                // 4.3o added pending check, watch for how it affects visuals
                 HOLES.forEach((_, i) => {
                     const d = document.getElementById("dot-" + i);
                     if (d)
                         d.className =
                             "prog-dot" +
-                            (S.submitted[i] ? " done" : "") +
+                            (S.submitted[i] === true ? " done" : "") +
+                            (S.submitted[i] == "pending" ? " pending" : "") +
                             (i === S.currentHole ? " active" : "");
                 });
             }
@@ -1211,6 +1241,8 @@
             // RENDER HOLE
             // ============================================================
             function renderHole() {
+                // 4.30 modified logic to strict comparison for true
+                // and specific check / add for pending
                 const h = HOLES[S.currentHole];
                 document.getElementById("hole-num-display").textContent = h.n;
                 document.getElementById("hole-par-display").textContent =
@@ -1221,9 +1253,12 @@
                     S.scores[S.currentHole] = h.par;
                 updateScoreDisplay(S.scores[S.currentHole], h.par);
                 const btn = document.getElementById("submit-hole-btn");
-                if (S.submitted[S.currentHole]) {
+                if (S.submitted[S.currentHole] === true) {
                     btn.textContent = "\u2713 Hole " + h.n + " Submitted";
                     btn.classList.add("submitted");
+                } else if (S.submitted[S.currentHole] == "pending") {
+                    btn.textContent = "\u2713 Hole " + h.n + " Pending";
+                    btn.classList.add("pending");
                 } else {
                     btn.textContent = "Submit Hole " + h.n;
                     btn.classList.remove("submitted");
@@ -1318,6 +1353,11 @@
                     showToast("Enter a score first");
                     return;
                 }
+
+                //4.30 I think pending submit / save goes here
+                S.submitted[idx] = "pending";
+                localStorage.setItem("game_state_cache", JSON.stringify(S));
+                //4.30   goes here
                 setStatus("sending", "Sending...");
                 btn.disabled = true;
                 const payload = {
@@ -1335,94 +1375,45 @@
 
                 //
                 let ok = false;
-
                 //    4.28
 
-                // must return a promise if APP_SCRIPT_URL exists or not
-                const appScriptPromise = APPS_SCRIPT_URL
-                    ? fetch(APPS_SCRIPT_URL, {
-                          method: "POST",
-                          mode: "no-cors",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(payload),
-                      })
-                    : Promise.resolve();
-
-                const netlifiyPromise = netlify_function_url
-                    ? fetch(netlify_function_url, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(payload),
-                      })
-                    : Promise.resolve();
-
-                try {
-                    await Promise.allSettled([
-                        appScriptPromise,
-                        netlifiyPromise,
-                    ]);
-                    ok = true;
-                } catch (e) {
-                    console.warn("Network error", e);
-                }
-                // ^^^ 4.28
+                // 4.30 commenting out previous promise definitions and exec
                 /*
-                try {
+                           // must return a promise if APPS_SCRIPT_URL exists or not
+                           const appScriptPromise = APPS_SCRIPT_URL
+                               ? fetch(APPS_SCRIPT_URL, {
+                                     method: "POST",
+                                     mode: "no-cors",
+                                     headers: { "Content-Type": "application/json" },
+                                     body: JSON.stringify(payload),
+                                 })
+                               : Promise.resolve();
 
-                    if (APPS_SCRIPT_URL) {
-                        await fetch(APPS_SCRIPT_URL, {
-                            method: "POST",
-                            mode: "no-cors",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                fields: {
-                                    Tournament: payload.tournament,
-                                    Group: payload.group,
-                                    Players: payload.players,
-                                    Hole: payload.hole,
-                                    Par: payload.par,
-                                    Score: payload.score,
-                                    VsPar: payload.vsPar,
-                                    Timestamp: payload.timestamp,
-                                },
-                            }),
-                        });
-                    }
-                    ok = true;
-                } catch (e) {
-                    console.warn("Apps Script:", e);
-                }
+                           const netlifiyPromise = netlify_function_url
+                               ? fetch(netlify_function_url, {
+                                     method: "POST",
+                                     headers: { "Content-Type": "application/json" },
+                                     body: JSON.stringify(payload),
+                                 })
+                               : Promise.resolve();
+                           // 4.30 I think this try block gets replaced with processQueue
+                           // because we set status to pending, so processQueue also pick
+                           // up on our new submission need
+                           try {
+                               await Promise.allSettled([
+                                   appScriptPromise,
+                                   netlifiyPromise,
+                               ]);
+                               ok = true;
+                           } catch (e) {
+                               console.warn("Network error", e);
+                           }
+                           */
+                // 4.30 commenting out previous promise definitions and exec
 
-                //## CHANGED THIS TO SEND TO SERVERLESS FUNCTION ON NETLIFY
+                //S.submitted[idx] = true;
 
-                try {
-                    await fetch(netlify_function_url, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            fields: {
-                                Tournament: payload.tournament,
-                                Group: payload.group,
-                                Players: payload.players,
-                                Hole: payload.hole,
-                                Par: payload.par,
-                                Score: payload.score,
-                                VsPar: payload.vsPar,
-                                Timestamp: payload.timestamp,
-                            },
-                        }),
-                    });
-                    ok = true;
-                } catch (e) {
-                    console.warn("Error sending to serverless function:", e);
-                }
-
-               */
-                S.submitted[idx] = true;
-
-                // add to localStorage
+                // saves sumbitted state to localStorage
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
                 //
 
@@ -1443,6 +1434,10 @@
                     if (idx < 17) nextHole();
                     else showFinal();
                 }, 900);
+
+                // 4.30 goes at the end to let UI change instantly
+                processQueue();
+                // S.submitted[idx] = true;
             }
 
             // ============================================================
@@ -1516,6 +1511,110 @@
                     "status-dot " + type;
                 document.getElementById("status-text").textContent = msg;
             }
+
+            // 04.30 Adding these functions to improve
+            // speed and handling of connectin issues
+            async function fetchWithRetry(
+                url,
+                options,
+                retries = 3,
+                backoff = 500,
+            ) {
+                try {
+                    const response = await fetch(url, options);
+                    // "no-cors" always returns status 0, so we skip check for Apps Script
+                    if (!response.ok && options.mode !== "no-cors") {
+                        throw new Error(
+                            `Server responded with ${response.status}`,
+                        );
+                    }
+
+                    if (response.ok && options.mode == "no-cors") {
+                        console.warn(
+                            "No-cors header used, verify that data actually got sent",
+                        );
+                    }
+
+                    return response;
+                } catch (error) {
+                    if (retries <= 0) throw error;
+
+                    console.warn(
+                        `Retrying... attempts left: ${retries}. Error: ${error.message}`,
+                    );
+
+                    // Wait before retrying (backoff)
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, backoff),
+                    );
+
+                    return fetchWithRetry(
+                        url,
+                        options,
+                        retries - 1,
+                        backoff * 2,
+                    );
+                }
+            }
+
+            //#no ui updates, only for handling pending connections
+            //  5.1 changing to text/plain same reasons below
+            //  5.1 removing 'no-cors in first my_options to test changes for frontend
+            function attemptSync(idx) {
+                const h = HOLES[idx];
+                const payload = {
+                    Tournament: S.tournName,
+                    Group: S.groupName,
+                    Token: S.token,
+                    Players: S.p1 + " & " + S.p2,
+                    Hole: h.n,
+                    Par: h.par,
+                    Dist: h.dist,
+                    Score: S.scores[idx],
+                    VsPar: S.scores[idx] - h.par,
+                    Timestamp: new Date().toISOString(),
+                };
+                let my_options = {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                };
+
+                my_options = {
+                    method: "POST",
+                    mode: "cors",
+                    redirect: "follow",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload),
+                };
+                return fetchWithRetry(APPS_SCRIPT_URL, my_options)
+                    .then(() => true)
+                    .catch(() => false);
+            }
+
+            async function processQueue() {
+                // Look through all 18 holes for anything marked "pending"
+                for (let i = 0; i < 18; i++) {
+                    if (S.submitted[i] === "pending") {
+                        const success = await attemptSync(i);
+                        if (success) {
+                            S.submitted[i] = true;
+                            localStorage.setItem(
+                                "game_state_cache",
+                                JSON.stringify(S),
+                            );
+                            setStatus("online", "Sync complete");
+                        } else {
+                            setStatus("error", "Syncing in background...");
+                            // Stop the loop if we're totally offline; try again later
+                            // break;
+                        }
+                    }
+                }
+            }
+
+            // 4.30
         </script>
     </body>
 </html>
