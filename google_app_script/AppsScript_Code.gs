@@ -108,6 +108,7 @@ function writeScore(ss, data) {
   const sheet = ss.getSheetByName(SHEET_SCORES);
 
   // Delete any existing entry for this group + hole
+  // 5.4 Thinking data.group needs to be data.Groups to have deleting effect
   const rows = sheet.getDataRange().getValues();
   for (let i = rows.length - 1; i >= 1; i--) {
     if (String(rows[i][2]) === String(data.group) &&
@@ -117,8 +118,9 @@ function writeScore(ss, data) {
   }
 
   // Append new score
+  // timestamp here reflects when it hits the server, not when frontend sent submission
   sheet.appendRow([
-    new Date(data.timestamp),
+    new Date().toISOString(),
     data.Tournament,
     data.Group,
     data.Players,

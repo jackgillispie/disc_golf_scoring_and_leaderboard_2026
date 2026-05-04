@@ -907,7 +907,8 @@
             // 5.1 testing for CORS 'fix'
             // const APPS_SCRIPT_URL =
             //    "https://script.google.com/macros/s/AKfycbyi2F9Xpo8Bw6oRuvtyrjVbPTumVsJTLp8QfjuwPZCHl3EMuo-jLPUWgq8CI37TtEq10w/exec";
-
+            //5.4 active_syncing variable will help prevent unnecessary concurrent retry mechanisms
+            let active_syncing = false;
             const APPS_SCRIPT_URL =
                 "https://script.google.com/macros/s/AKfycbzJCidQPDPpUENslMLF3YNhU5no4fXWNmBZvOR6ZGwpTcR-7jh2v2LrY7HaROnOb0pRww/exec";
             const netlify_function_name = "save-score";
@@ -1068,6 +1069,8 @@
                         buildMini();
                         updateMini();
                         renderHole();
+                        // 5.4 retries on refresh, hopefully not on dry start
+                        processQueue();
                     }
                 }
 
@@ -1111,6 +1114,7 @@
                     show("setup-screen");
                 }
                 // 5.1. hoping this line will retry on refresh
+                console.log("running processqueue from window.onload");
                 processQueue();
             });
 
@@ -1379,36 +1383,36 @@
 
                 // 4.30 commenting out previous promise definitions and exec
                 /*
-                           // must return a promise if APPS_SCRIPT_URL exists or not
-                           const appScriptPromise = APPS_SCRIPT_URL
-                               ? fetch(APPS_SCRIPT_URL, {
-                                     method: "POST",
-                                     mode: "no-cors",
-                                     headers: { "Content-Type": "application/json" },
-                                     body: JSON.stringify(payload),
-                                 })
-                               : Promise.resolve();
+                            // must return a promise if APPS_SCRIPT_URL exists or not
+                            const appScriptPromise = APPS_SCRIPT_URL
+                                ? fetch(APPS_SCRIPT_URL, {
+                                      method: "POST",
+                                      mode: "no-cors",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify(payload),
+                                  })
+                                : Promise.resolve();
 
-                           const netlifiyPromise = netlify_function_url
-                               ? fetch(netlify_function_url, {
-                                     method: "POST",
-                                     headers: { "Content-Type": "application/json" },
-                                     body: JSON.stringify(payload),
-                                 })
-                               : Promise.resolve();
-                           // 4.30 I think this try block gets replaced with processQueue
-                           // because we set status to pending, so processQueue also pick
-                           // up on our new submission need
-                           try {
-                               await Promise.allSettled([
-                                   appScriptPromise,
-                                   netlifiyPromise,
-                               ]);
-                               ok = true;
-                           } catch (e) {
-                               console.warn("Network error", e);
-                           }
-                           */
+                            const netlifiyPromise = netlify_function_url
+                                ? fetch(netlify_function_url, {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify(payload),
+                                  })
+                                : Promise.resolve();
+                            // 4.30 I think this try block gets replaced with processQueue
+                            // because we set status to pending, so processQueue also pick
+                            // up on our new submission need
+                            try {
+                                await Promise.allSettled([
+                                    appScriptPromise,
+                                    netlifiyPromise,
+                                ]);
+                                ok = true;
+                            } catch (e) {
+                                console.warn("Network error", e);
+                            }
+                            */
                 // 4.30 commenting out previous promise definitions and exec
 
                 //S.submitted[idx] = true;
@@ -1594,9 +1598,16 @@
             }
 
             async function processQueue() {
+                console.log("ProcessQueue started");
                 // Look through all 18 holes for anything marked "pending"
+                // 5.4 check active_syncing and do nothing if AKfycbyi2F9Xpo8Bw6oRuvtyrjVbPTumVsJTLp8QfjuwPZCHl3EMuo
+                if (globalThis.active_syncing === true) {
+                    return;
+                }
+                globalThis.active_syncing = true;
                 for (let i = 0; i < 18; i++) {
                     if (S.submitted[i] === "pending") {
+                        console.log(`Scheduling to await attemptSync(${i})`);
                         const success = await attemptSync(i);
                         if (success) {
                             S.submitted[i] = true;
@@ -1605,6 +1616,8 @@
                                 JSON.stringify(S),
                             );
                             setStatus("online", "Sync complete");
+
+                            // change submit button ui here ?
                         } else {
                             setStatus("error", "Syncing in background...");
                             // Stop the loop if we're totally offline; try again later
@@ -1612,6 +1625,7 @@
                         }
                     }
                 }
+                globalThis.active_syncing = false;
             }
 
             // 4.30
