@@ -76,6 +76,31 @@
                 justify-content: space-between;
                 margin-bottom: 12px;
             }
+
+            .header-logo-wrapper {
+                flex: 1;
+                min-height: 0; /* CRITICAL: Allows flex item to shrink below content size */
+                overflow: hidden; /* Prevents stray pixels from bleeding out */
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                justify-content: center;
+            }
+
+            .header-logo {
+                max-width: 50%; /* Don't overflow horizontally */
+                max-height: 50%; /* Don't overflow vertically */
+                object-fit: contain; /* Keeps aspect ratio while fitting inside */
+                display: block; /* Removes bottom whitespace gap */
+            }
+
+            .logo-caption {
+                font-size: 0.8rem; /* Adjust as needed */
+                text-align: right; /* Ensures text lines up with the right edge */
+                margin-top: 4px; /* Small gap between logo and text */
+                color: white;
+            }
+
             .course-name {
                 font-family: "Bebas Neue", sans-serif;
                 font-size: 26px;
@@ -83,6 +108,7 @@
                 color: var(--lime);
                 line-height: 1;
             }
+            /*
             .round-badge {
                 background: rgba(139, 195, 74, 0.15);
                 border: 1px solid rgba(139, 195, 74, 0.3);
@@ -94,6 +120,7 @@
                 letter-spacing: 1px;
                 text-transform: uppercase;
             }
+            */
             .hole-progress {
                 display: flex;
                 gap: 3px;
@@ -538,6 +565,14 @@
                 font-weight: 700;
                 border-radius: 4px;
             }
+
+            .cell-par {
+                background: white;
+                color: var(--par);
+                font-weight: 700;
+                border-radius: 4px;
+            }
+
             .cell-bogey {
                 background: #fff3e0;
                 color: var(--bogey);
@@ -686,7 +721,14 @@
             <div class="header">
                 <div class="header-top">
                     <div class="course-name">Brackett's Bluff</div>
-                    <div class="round-badge" id="round-label">Live Scoring</div>
+                    <div class="header-logo-wrapper">
+                        <img
+                            class="header-logo"
+                            src="https://static.wixstatic.com/media/0d7fac_5affc411dc7b48eeaf63f0181637f2fb~mv2.png/v1/fit/w_238,h_100,q_90,enc_avif,quality_auto/0d7fac_5affc411dc7b48eeaf63f0181637f2fb~mv2.png"
+                            alt="Sponsor"
+                        />
+                        <span class="logo-caption">sponsored by</span>
+                    </div>
                 </div>
                 <div class="hole-progress" id="hole-progress"></div>
             </div>
@@ -740,7 +782,7 @@
                             />
                         </div>
                         <div class="field-group" id="group-field-wrapper">
-                            <label class="field-label">Card / Group</label>
+                            <label class="field-label">Team Name</label>
                             <div
                                 class="field-locked"
                                 id="group-locked-display"
@@ -767,7 +809,7 @@
                 </div>
 
                 <div class="setup-card">
-                    <h3>Team Players</h3>
+                    <h3>Team Members</h3>
                     <div class="player-grid">
                         <div class="field-group">
                             <label class="field-label">Player 1</label>
@@ -910,7 +952,7 @@
             //5.4 active_syncing variable will help prevent unnecessary concurrent retry mechanisms
             let active_syncing = false;
             const APPS_SCRIPT_URL =
-                "https://script.google.com/macros/s/AKfycbzJCidQPDPpUENslMLF3YNhU5no4fXWNmBZvOR6ZGwpTcR-7jh2v2LrY7HaROnOb0pRww/exec";
+                "https://script.google.com/macros/s/AKfycbxinZ6rj0aIGTl34BR8Ydr__fZxqpallK0S2NBkYbOPQtJYpBFtVHmTfv-lULg5bVmX0A/exec";
             const netlify_function_name = "save-score";
             const netlify_domain = "rad-bublanina-4d627c.netlify.app";
             let netlify_function_url = `https://${netlify_domain}/.netlify/functions/${netlify_function_name}`;
@@ -1054,8 +1096,6 @@
 
                 if (game_state_cache) {
                     if (JSON.parse(game_state_cache).p1) {
-                        document.getElementById("round-label").textContent =
-                            S.groupName;
                         document.getElementById(
                             "team-names-display",
                         ).textContent = S.p1 + " & " + S.p2;
@@ -1148,8 +1188,6 @@
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
                 //
 
-                document.getElementById("round-label").textContent =
-                    S.groupName;
                 document.getElementById("team-names-display").textContent =
                     p1 + " & " + p2;
                 document.getElementById("totals-team-name").textContent =
@@ -1233,11 +1271,13 @@
                             ? "cell-eagle"
                             : d === -1
                               ? "cell-birdie"
-                              : d === 1
-                                ? "cell-bogey"
-                                : d >= 2
-                                  ? "cell-double"
-                                  : "";
+                              : d === 0
+                                ? "cell-par"
+                                : d === 1
+                                  ? "cell-bogey"
+                                  : d >= 2
+                                    ? "cell-double"
+                                    : "";
                 });
             }
 
@@ -1255,6 +1295,9 @@
                     h.dist + " ft";
                 if (S.scores[S.currentHole] === null)
                     S.scores[S.currentHole] = h.par;
+                // 5.4 hoping this changes the mini when we  move
+                w = document.getElementById("mc-" + S.currentHole);
+                w.className = "cell-par";
                 updateScoreDisplay(S.scores[S.currentHole], h.par);
                 const btn = document.getElementById("submit-hole-btn");
                 if (S.submitted[S.currentHole] === true) {
@@ -1327,7 +1370,7 @@
                 const diff = played > 0 ? total - par : null;
                 const sign = diff > 0 ? "+" : "";
                 const str =
-                    diff === null ? "—" : diff === 0 ? "E" : `${sign}${diff}`;
+                    diff === null ? "—" : diff === 0 ? "=" : `${sign}${diff}`;
                 const cls =
                     diff === null
                         ? ""
@@ -1527,7 +1570,9 @@
                 try {
                     const response = await fetch(url, options);
                     // "no-cors" always returns status 0, so we skip check for Apps Script
+                    // 5.4 using cors with plaintext payload, so
                     if (!response.ok && options.mode !== "no-cors") {
+                        console.log("cors, response not ok");
                         throw new Error(
                             `Server responded with ${response.status}`,
                         );
@@ -1538,7 +1583,7 @@
                             "No-cors header used, verify that data actually got sent",
                         );
                     }
-
+                    console.log("response returned normally");
                     return response;
                 } catch (error) {
                     if (retries <= 0) throw error;
@@ -1551,7 +1596,7 @@
                     await new Promise((resolve) =>
                         setTimeout(resolve, backoff),
                     );
-
+                    console.log("marking end of setTimeout promise");
                     return fetchWithRetry(
                         url,
                         options,
@@ -1615,6 +1660,11 @@
                                 "game_state_cache",
                                 JSON.stringify(S),
                             );
+                            // 5.4 making top indicator show completion
+                            //
+                            document.getElementById("dot-" + i).className =
+                                "prog-dot done";
+                            //
                             setStatus("online", "Sync complete");
 
                             // change submit button ui here ?

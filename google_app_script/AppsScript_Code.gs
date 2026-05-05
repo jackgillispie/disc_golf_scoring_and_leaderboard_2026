@@ -7,6 +7,10 @@
 // 2. Deploy → New Deployment → Web App
 //    Execute as: Me | Who has access: Anyone
 // 3. Copy deployment URL → paste into bracketts_bluff_scorer.html
+//
+//5.4 Pulling out rebuildLeaderboard and rebuildHoleSummary
+// to improve speed on POST
+// POST should recieve data and write it to file only
 // ============================================================
 
 const SHEET_SCORES      = 'Raw Scores';
@@ -37,8 +41,10 @@ function doPost(e) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     ensureSheets(ss);
     writeScore(ss, data);
-    rebuildLeaderboard(ss);
-    rebuildHoleSummary(ss);
+
+    //5.4 pulling these out, will put them in a timer or something similar
+    // rebuildLeaderboard(ss);
+    // rebuildHoleSummary(ss);
 
     // to send on the frontend, recommended to wrap the getResponseText
     // in ContentService.createTextOutput(JSON...
@@ -109,14 +115,18 @@ function writeScore(ss, data) {
 
   // Delete any existing entry for this group + hole
   // 5.4 Thinking data.group needs to be data.Groups to have deleting effect
+
+    // this deletion operation, even nonfunction, may be slowing things down?
+  /*
   const rows = sheet.getDataRange().getValues();
+
   for (let i = rows.length - 1; i >= 1; i--) {
     if (String(rows[i][2]) === String(data.group) &&
         Number(rows[i][4]) === Number(data.hole)) {
       sheet.deleteRow(i + 1);
     }
   }
-
+  */
   // Append new score
   // timestamp here reflects when it hits the server, not when frontend sent submission
   sheet.appendRow([
@@ -132,18 +142,24 @@ function writeScore(ss, data) {
     data.Token
   ]);
 
-  colorVsParColumn(sheet);
+  // colorVsParColumn(sheet);
 }
 
 // ============================================================
 // REBUILD LEADERBOARD
 // ============================================================
+//
+// 5.4 appears to change players names for team ONLY when a new hole is pushed
+// hole score does not seem to get updated here
+// effectively changing players midway breaks intended purpose
+// only if a hole submission is for a unique hole does it affect the ranking calculation
+// need a way to resubmit the same hole and update the results
+//
 function rebuildLeaderboard(ss) {
   const raw = ss.getSheetByName(SHEET_SCORES);
   const lb  = ss.getSheetByName(SHEET_LEADERBOARD);
 
   const rows = raw.getDataRange().getValues().slice(1);
-
   // Aggregate by group
   const groups = {};
   rows.forEach(row => {
@@ -156,6 +172,7 @@ function rebuildLeaderboard(ss) {
     if (!groups[group]) {
       groups[group] = { group, players, totalScore: 0, totalPar: 0, holes: new Set() };
     }
+
     if (!groups[group].holes.has(hole)) {
       groups[group].holes.add(hole);
       groups[group].totalScore += score;
@@ -173,7 +190,7 @@ function rebuildLeaderboard(ss) {
     lb.getRange(2, 1, lb.getLastRow() - 1, 7).clearContent().clearFormat();
   }
 
-  const now = new Date().toLocaleTimeString();
+  const now = new Date().toISOString();
 
   sorted.forEach((g, i) => {
     const diff    = g.totalScore - g.totalPar;
@@ -386,4 +403,19 @@ function initializeSheets() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   ensureSheets(ss);
   SpreadsheetApp.getUi().alert('Sheets initialized. Ready for scoring.');
+}
+
+// ============================================================
+// HELPER TO AGGREGATE LEADERBOARD REBUILD FUNCTIONS
+//   should run in the background every _ minutes or similar,
+//   that needs to be configured in AppScript dashboard
+// ============================================================
+
+function rebuildSteps(){
+
+const ss = SpreadsheetApp.getActiveSpreadsheet();
+ensureSheets(ss);
+rebuildLeaderboard(ss);
+rebuildHoleSummary(ss);
+// recalculateLeaderboard()  just does the above two steps, so syncing should be automatic
 }
