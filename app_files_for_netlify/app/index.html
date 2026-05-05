@@ -35,6 +35,7 @@
                 background: var(--forest);
                 min-height: 100vh;
                 color: #1a1a1a;
+                touch-action: manipulation; // avoids some auto focus on Safari
             }
             body::before {
                 content: "";
@@ -88,10 +89,12 @@
             }
 
             .header-logo {
-                max-width: 50%; /* Don't overflow horizontally */
-                max-height: 50%; /* Don't overflow vertically */
-                object-fit: contain; /* Keeps aspect ratio while fitting inside */
+                max-width: 60%; /* Don't overflow horizontally */
+                max-height: 60%; /* Don't overflow vertically */
+                object-fit: cover; /* Keeps aspect ratio while fitting inside */
                 display: block; /* Removes bottom whitespace gap */
+                aspect-ratio: 1 / 1;
+                clip-path: circle(46%);
             }
 
             .logo-caption {
@@ -724,8 +727,8 @@
                     <div class="header-logo-wrapper">
                         <img
                             class="header-logo"
-                            src="https://static.wixstatic.com/media/0d7fac_5affc411dc7b48eeaf63f0181637f2fb~mv2.png/v1/fit/w_238,h_100,q_90,enc_avif,quality_auto/0d7fac_5affc411dc7b48eeaf63f0181637f2fb~mv2.png"
-                            alt="Sponsor"
+                            src="assets/tournament_logo.PNG"
+                            alt="Tournament Logo"
                         />
                         <span class="logo-caption">sponsored by</span>
                     </div>
