@@ -960,7 +960,9 @@
             //5.4 active_syncing variable will help prevent unnecessary concurrent retry mechanisms
             let active_syncing = false;
             const APPS_SCRIPT_URL =
-                "https://script.google.com/macros/s/AKfycbze2ANlFHdSe50JsFU-adNn6xWY7j6m8xVP52mydansWmn1SZpdQwwlMGbe4hoJpfmrtw/exec";
+                "https://script.google.com/macros/s/AKfycbyK46kFrqFB0X-_c5kSwgI4oRFhezow0pVtV8X31nlgYj0xtF94Al1NtuZ0Fjkx-gjCUQ/exec";
+
+            //in case we decide to call appscript from backend vs frontend
             const netlify_function_name = "save-score";
             const netlify_domain = "rad-bublanina-4d627c.netlify.app";
             let netlify_function_url = `https://${netlify_domain}/.netlify/functions/${netlify_function_name}`;
@@ -1548,7 +1550,6 @@
             // SETUP
             // ============================================================
             //
-            //
             // Adding submit to localStorage so the user gets saved
             //
             function startRound() {
@@ -1707,7 +1708,7 @@
             // SCORE CHANGE
             // ============================================================
             //
-            // Think I need to sync to localStorage here as well...
+            //
             //
             function changeScore(delta) {
                 const h = HOLES[S.currentHole];
@@ -1777,7 +1778,7 @@
             // SUBMIT HOLE
             // ============================================================
             //
-            // Adding localStorage mechanism to persist on refresh
+            //
             //
             async function submitHole() {
                 const idx = S.currentHole,
@@ -1807,45 +1808,7 @@
                     Timestamp: new Date().toISOString(),
                 };
 
-                //
                 let ok = false;
-                //    4.28
-
-                // 4.30 commenting out previous promise definitions and exec
-                /*
-                            // must return a promise if APPS_SCRIPT_URL exists or not
-                            const appScriptPromise = APPS_SCRIPT_URL
-                                ? fetch(APPS_SCRIPT_URL, {
-                                      method: "POST",
-                                      mode: "no-cors",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify(payload),
-                                  })
-                                : Promise.resolve();
-
-                            const netlifiyPromise = netlify_function_url
-                                ? fetch(netlify_function_url, {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify(payload),
-                                  })
-                                : Promise.resolve();
-                            // 4.30 I think this try block gets replaced with processQueue
-                            // because we set status to pending, so processQueue also pick
-                            // up on our new submission need
-                            try {
-                                await Promise.allSettled([
-                                    appScriptPromise,
-                                    netlifiyPromise,
-                                ]);
-                                ok = true;
-                            } catch (e) {
-                                console.warn("Network error", e);
-                            }
-                            */
-                // 4.30 commenting out previous promise definitions and exec
-
-                //S.submitted[idx] = true;
 
                 // saves sumbitted state to localStorage
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
@@ -1879,7 +1842,6 @@
                 updateNavBtns();
                 // 4.30 goes at the end to let UI change instantly
                 processQueue();
-                // S.submitted[idx] = true;
             }
 
             // ============================================================
@@ -1902,11 +1864,6 @@
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
                 // render with updated S.currentHole to display next hole
                 renderHole();
-
-                //if (S.currentHole < 17) {
-                //   S.currentHole++;
-                //   renderHole();
-                //} else showFinal();
             }
 
             // 5.7 adding looparound functionality
@@ -1921,11 +1878,6 @@
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
                 // render with updated S.currentHole to display next hole
                 renderHole();
-
-                //     if (S.currentHole > 0) {
-                //         S.currentHole--;
-                //         renderHole();
-                //     }
             }
             function goToHole(i) {
                 S.currentHole = i;
@@ -1946,16 +1898,6 @@
                         "Next Hole  \u2192 ";
                 }
                 //
-                //
-                //  document.getElementById("btn-prev").disabled =
-                //    S.currentHole === 0;
-                // 5.5 FIX UI TO MATCH lockout
-                // ONLY AFTER ALL HOLES SUBMITTED
-                // NOT JUST 18th hole
-                //  document.getElementById("btn-next").textContent =
-                //    S.currentHole === 17
-                //      ? "Finish Round"
-                //    : "Next Hole  \u2192 ";
             }
 
             // ============================================================
@@ -2116,14 +2058,7 @@
                                     "prog-dot done";
                             }
                             //5.7 changing to reflect hole completed
-                            /* setTimeout(
-                                setStatus(
-                                    "online",
-                                    `Sync Hole ${i + 1} complete`,
-                                ),
-                                1000,
-                            );
-                            */
+
                             await new Promise((resolve) => {
                                 setStatus(
                                     "online",
@@ -2148,23 +2083,6 @@
                                     resolve();
                                 }, 1000);
                             });
-
-                            /*
-                            setTimeout(
-                                setStatus(
-                                    "error",
-                                    `Trying Hole ${i + 1} again on next hole submission or refresh`,
-                                ),
-                                1000,
-                            );
-                            */
-                            /*  setStatus(
-                                "error",
-                                `Trying Hole ${i + 1} again on next hole submission or refresh`,
-                            );
-                           */
-                            // Stop the loop if we're totally offline; try again later
-                            // break;
                         }
                     }
                 }
