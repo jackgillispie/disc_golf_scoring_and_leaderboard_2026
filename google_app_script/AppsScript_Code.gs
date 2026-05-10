@@ -307,6 +307,112 @@ function populateGroupTokens() {
   );
 }
 
+function createQRCodes(){
+ const ss = SpreadsheetApp.getActiveSpreadsheet();
+ qrSheetHeaders = ["Col1", "Col2", "Col3"]
+ setupSheet(ss, "QR Codes", qrSheetHeaders, '#1a2e1a', '#8bc34a' )
+ qr_sheet = ss.getSheetByName("QR Codes")
+
+const url_base = "lknitpdiscgolf2026.netlify.app?g="
+
+const token = ["Slightly-Small Saboteurs","Double-Grip Dwarves","Ankle-Biters Anonymous","Gravel-Pit Putters","Fairway-Finder Fiends","Flex-Shot Phantoms","Basket Boggarts","Rose-Thorn Rollers","The Vertical-Limit Voiders","Miniature Mountain-Men","Backshot Bark Biters","Putter-Pocket Pranksters","Caddy-Cap Crusaders","Anhyzer Anvils","Anvil Approaches","Chain-Bang Chums","Birdie Bandits","The Minuscule Misfits","Scramble Scoundrels","Compact Commandos","Turbo-Putt Trolls","Below-the-Belt Bandits","Fairway Faeries","Nose-Angle Knaves","Trellis Tossers","Basket Breakers","Grip-Lock Goblins","Circle One Centurions","Flicker-Fire Imps","Thumber Thugs","Little-League Legends","The Chains Chasers","Loft-Shot Lads","The Roller Rebels","High-Speed Hobgoblins","Basket-Case Burglars","The Plastic Heavyweights","Cobblestone Kings","Bogey Brownies","Porch Sitters","The Grass-Top Gliders","The Short-Range Sharpshooters","Off-the-Fairway Outlaws","Spore Sprouts","The Teeny-Tiny Titans","Gnomish Gentry","Sub-Clover Squad","Foxglove Flickers","Tunnel-Shot Troglodytes","Pipe Puffers","Bonsai Brigade","Mycelium Marauders","Under-the-Radar Rogues","Windy Wizards","Hyzer Hijackers","Inch-High Iron-Leaves","Stump-Hitters","Basket-Hanging Hoodlums","Small-Batch Bad-Boys","Garden Gate Gliders","The Shin-Height Shufflers","Iron-Leaf Infantry","Basket BreakersGranite Gliders","Disc-Golf Diggers","Half-Pint Phantoms","Tulip Tomahawks","Wheelbarrow Wingers","Tee-Box Terrors","Verticality Challenged","Mando Mischief","Dead-Straight Dwarves","Pebble Pushers","Knee-High Knucklers","Over-the-Hedge Hyzers","Bark Biters","The Pocket-Sized Putters","Tomahawk Trolls","The Grass-Stain Gang","Stable Stalagmites","The Thicket Throwers","Spit-Out Sprites","Mithril Midranges","Marigold Mashers","Petunia Putters","Bramble Birdies","Granite Gliders","Putter Prowlers","The Low-Down Dirty Dogs","The Ace Runners","Turnover Trowels","Mossy Midrangers","Knee-High Knockouts","Dahlia Drivers","Maximum Distance Miscreants","Ground-Level Grifters","Overstable Ogres","Leaf Litter Legion","Petite-Power Players","Fairway Felons","Picket-Fence Putters","Understable Undercroft","The Pint-Sized Putters","Par-Saving Pixies","The Low-Profile Pros","The Shank Shifters","Sceckled Spores","Mound-Bound Marauders","Fun-Sized Force","Shadow-Shortened Scoundrels","The Wee-Folk Warriors","Low-Ceiling Lurkers","Micro-Stature Marauders"];
+
+let total_qr_codes = token.length
+
+let qr_print_arr = []
+let rowFirst = []
+let rowSecond = []
+
+for (let i=0;i<total_qr_codes;i+=3){
+
+ let payload = url_base + token[i]
+
+ paddedRow = token.slice(i,i+3)
+
+let rowSecond = Object.assign(["", "", ""], paddedRow);
+
+ rowFirst = rowSecond.map((token) => {return `=IMAGE("https://quickchart.io/qr?text=" & "https://" & ENCODEURL("${url_base + token}"))`})
+ qr_print_arr.push(rowFirst, rowSecond)
+
+}
+console.log(qr_print_arr)
+
+qr_sheet.getRange(1,1,qr_print_arr.length,qr_print_arr[1].length).setValues(qr_print_arr)
+
+ const sheetId = qr_sheet.getSheetId();
+  const rowHeight = 250; // Desired height in pixels
+
+  // Example: Change height for every other row (alternating)
+  let targetRows = [];
+  for (let i = 1; i <= 200; i += 2) {
+    targetRows.push(i);
+  }
+
+  // Create an array of individual requests for each row
+  let requests = targetRows.map(rowNum => {
+    return {
+      updateDimensionProperties: {
+        range: {
+          sheetId: sheetId,
+          dimension: "ROWS",
+          startIndex: rowNum - 1, // 0-indexed: Row 2 is index 1
+          endIndex: rowNum       // endIndex is exclusive
+        },
+        properties: {
+          pixelSize: rowHeight
+        },
+        fields: "pixelSize" // Only update the row height
+      }
+    };
+  });
+
+  // Execute all changes in a single API call
+  try {
+    Sheets.Spreadsheets.batchUpdate({ requests: requests }, ss.getId());
+    console.log(`Successfully updated ${targetRows.length} rows.`);
+  } catch (err) {
+    console.log('Failed with error: ' + err.message);
+  }
+
+
+  // reusing template for convenience
+  // Example: Change height for every other column (alternating)
+  targetRows = [];
+  for (let i = 1; i < 4; i++) {
+    targetRows.push(i);
+  }
+
+  // Create an array of individual requests for each row
+  requests = targetRows.map(rowNum => {
+    return {
+      updateDimensionProperties: {
+        range: {
+          sheetId: sheetId,
+          dimension: "COLUMNS",
+          startIndex: rowNum - 1, // 0-indexed: Row 2 is index 1
+          endIndex: rowNum       // endIndex is exclusive
+        },
+        properties: {
+          pixelSize: rowHeight
+        },
+        fields: "pixelSize" // Only update the row height
+      }
+    };
+  });
+
+  // Execute all changes in a single API call
+  try {
+    Sheets.Spreadsheets.batchUpdate({ requests: requests }, ss.getId());
+    console.log(`Successfully updated ${targetRows.length} rows.`);
+  } catch (err) {
+    console.log('Failed with error: ' + err.message);
+  }
+
+
+
+}
+
+
 // ============================================================
 // MANUAL RECALCULATE — TD runs from Apps Script menu
 // ============================================================
@@ -369,6 +475,7 @@ function onOpen() {
     .createMenu('TD Tools')
     .addItem('Initialize sheets', 'initializeSheets')
     .addItem('Generate group URLs', 'populateGroupTokens')
+    .addItem('Create QR Codes', 'createQRCodes')
     .addSeparator()
     .addItem('Recalculate leaderboard', 'recalculateLeaderboard')
     .addItem('Correct a score', 'correctScore')

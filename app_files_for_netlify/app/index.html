@@ -6,7 +6,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0, user-scalable=no"
         />
-        <title>Brackett's Bluff — Live Scoring</title>
+        <title>Brackett's Bluff — Live IT Disc Golf Tournament Scoring</title>
         <link
             href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap"
             rel="stylesheet"
@@ -65,6 +65,7 @@
 
             .header {
                 background: var(--forest);
+
                 padding: 20px 20px 14px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.08);
                 position: sticky;
@@ -85,6 +86,7 @@
                 display: flex;
                 flex-direction: column;
                 align-items: flex-end;
+                align-content: center;
                 justify-content: center;
             }
 
@@ -99,6 +101,7 @@
 
             .logo-caption {
                 font-size: 0.8rem; /* Adjust as needed */
+
                 text-align: right; /* Ensures text lines up with the right edge */
                 margin-top: 4px; /* Small gap between logo and text */
                 color: white;
@@ -107,6 +110,14 @@
             .course-name {
                 font-family: "Bebas Neue", sans-serif;
                 font-size: 26px;
+                letter-spacing: 2px;
+                color: var(--lime);
+                line-height: 1;
+            }
+
+            .course-surname {
+                font-family: "Bebas Neue", sans-serif;
+                font-size: 20px;
                 letter-spacing: 2px;
                 color: var(--lime);
                 line-height: 1;
@@ -433,6 +444,11 @@
                 letter-spacing: 1px;
                 text-transform: uppercase;
             }
+            .badge-ace {
+                background: gold;
+                color: var(--eagle);
+            }
+
             .badge-eagle {
                 background: #e3f2fd;
                 color: var(--eagle);
@@ -561,6 +577,13 @@
             .mini-table td.pcol {
                 color: #bbb;
             }
+
+            .cell-ace {
+                background: gold;
+                color: var(--eagle);
+                font-weight: 700;
+                border-radius: 4px;
+            }
             .cell-eagle {
                 background: #e3f2fd;
                 color: var(--eagle);
@@ -575,7 +598,7 @@
             }
 
             .cell-par {
-                background: white;
+                background:#DCECD0;
                 color: var(--par);
                 font-weight: 700;
                 border-radius: 4px;
@@ -591,6 +614,16 @@
                 color: var(--double);
                 border-radius: 4px;
             }
+
+            .cell-nav {
+                background: white;
+                outline-color: black;
+                outline-style: dashed;
+                color: var(--par);
+                font-weight: 700;
+                border-radius: 4px;
+            }
+
             .nav-row {
                 display: flex;
                 gap: 10px;
@@ -728,7 +761,11 @@
         <div class="app">
             <div class="header">
                 <div class="header-top">
-                    <div class="course-name">Brackett's Bluff</div>
+                    <div class="test">
+                        <div class="course-name">Brackett's Bluff</div>
+                        <div class="course-surname">2026 Tournament</div>
+                    </div>
+
                     <div class="header-logo-wrapper">
                         <img
                             class="header-logo"
@@ -852,7 +889,7 @@
                     <div class="team-label">
                         <div class="team-names" id="team-names-display">—</div>
                         <div class="team-sub">
-                            Best shot counts — one team score
+                            Best shot counts towards score
                         </div>
                     </div>
                     <div class="score-entry">
@@ -954,15 +991,12 @@
             // CONFIG — paste your deployed URLs here
             // ============================================================
 
-            // 5.1 testing for CORS 'fix'
-            // const APPS_SCRIPT_URL =
-            //    "https://script.google.com/macros/s/AKfycbyi2F9Xpo8Bw6oRuvtyrjVbPTumVsJTLp8QfjuwPZCHl3EMuo-jLPUWgq8CI37TtEq10w/exec";
             //5.4 active_syncing variable will help prevent unnecessary concurrent retry mechanisms
             let active_syncing = false;
             const APPS_SCRIPT_URL =
-                "https://script.google.com/macros/s/AKfycbyK46kFrqFB0X-_c5kSwgI4oRFhezow0pVtV8X31nlgYj0xtF94Al1NtuZ0Fjkx-gjCUQ/exec";
+                "https://script.google.com/macros/s/AKfycbxVzZl4Rs0sWCP68ysQS8sY1WnFvxorp2IEzeFPxe3XGvE7Q2lY0nJRIEEnidCNgWU9gQ/exec";
 
-            //in case we decide to call appscript from backend vs frontend
+            //in case we decide to call appscript from serverless netlify backend vs frontend
             const netlify_function_name = "save-score";
             const netlify_domain = "rad-bublanina-4d627c.netlify.app";
             let netlify_function_url = `https://${netlify_domain}/.netlify/functions/${netlify_function_name}`;
@@ -1665,6 +1699,11 @@
                                   : d >= 2
                                     ? "cell-double"
                                     : "";
+                    if (s == 1) {
+                        c.className = "cell-ace";
+                    }
+                    w = document.getElementById("mc-" + S.currentHole);
+                    w.className = "cell-nav";
                 });
             }
 
@@ -1682,9 +1721,10 @@
                     h.dist + " ft";
                 if (S.scores[S.currentHole] === null)
                     S.scores[S.currentHole] = h.par;
+                //5.1o moving to render
                 // 5.4 hoping this changes the mini when we  move
-                w = document.getElementById("mc-" + S.currentHole);
-                w.className = "cell-par";
+                // w = document.getElementById("mc-" + S.currentHole);
+                // w.className = "cell-nav";
                 updateScoreDisplay(S.scores[S.currentHole], h.par);
                 const btn = document.getElementById("submit-hole-btn");
                 if (S.submitted[S.currentHole] === true) {
@@ -1700,6 +1740,7 @@
                 btn.disabled = false;
                 renderTotals();
                 updateProgress();
+                //5.10
                 // 5.7 removing updateNavBtns
                 // updateNavBtns();
             }
@@ -1707,9 +1748,7 @@
             // ============================================================
             // SCORE CHANGE
             // ============================================================
-            //
-            //
-            //
+
             function changeScore(delta) {
                 const h = HOLES[S.currentHole];
                 S.scores[S.currentHole] = Math.max(
@@ -1727,6 +1766,7 @@
             }
             function updateScoreDisplay(score, par) {
                 document.getElementById("score-val").textContent = score;
+
                 const b = getBadge(score, par);
                 const el = document.getElementById("score-badge");
                 el.textContent = b.label;
@@ -1734,6 +1774,7 @@
             }
             function getBadge(s, p) {
                 const d = s - p;
+                if (s === 1) return { cls: "badge-ace", label: "Ace" };
                 if (d <= -2) return { cls: "badge-eagle", label: "Eagle" };
                 if (d === -1) return { cls: "badge-birdie", label: "Birdie" };
                 if (d === 0) return { cls: "badge-par", label: "Par" };
@@ -1864,6 +1905,7 @@
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
                 // render with updated S.currentHole to display next hole
                 renderHole();
+                updateMini();
             }
 
             // 5.7 adding looparound functionality
@@ -1878,10 +1920,12 @@
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
                 // render with updated S.currentHole to display next hole
                 renderHole();
+                updateMini();
             }
             function goToHole(i) {
                 S.currentHole = i;
                 renderHole();
+                updateMini();
             }
             function updateNavBtns() {
                 // 5.7 rewriting and may rename this function
