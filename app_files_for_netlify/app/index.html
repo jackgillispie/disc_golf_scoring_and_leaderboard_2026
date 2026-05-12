@@ -90,6 +90,14 @@
                 justify-content: center;
             }
 
+            .dynamic-header-logo {
+                // max-width: 100%; /* Don't overflow horizontally */
+                // max-height: 100%; /* Don't overflow vertically */
+                object-fit: contain; /* Keeps aspect ratio while fitting inside */
+                display: block; /* Removes bottom whitespace gap */
+                aspect-ratio: 1 / 1;
+            }
+
             .header-logo {
                 max-width: 60%; /* Don't overflow horizontally */
                 max-height: 60%; /* Don't overflow vertically */
@@ -368,12 +376,12 @@
             }
             .hole-par {
                 font-family: "Bebas Neue", sans-serif;
-                font-size: 30px;
+                font-size: 45px;
                 color: var(--fern);
                 line-height: 1;
             }
             .hole-dist {
-                font-size: 13px;
+                font-size: 25px;
                 color: #999;
                 margin-top: 3px;
             }
@@ -382,12 +390,12 @@
                 margin-bottom: 20px;
             }
             .team-names {
-                font-size: 16px;
+                font-size: 20px;
                 font-weight: 600;
                 color: #222;
             }
             .team-sub {
-                font-size: 12px;
+                font-size: 15px;
                 color: #999;
                 margin-top: 2px;
             }
@@ -510,7 +518,6 @@
                 letter-spacing: 1.5px;
                 text-transform: uppercase;
                 color: var(--fern);
-                margin-bottom: 10px;
             }
             .totals-row {
                 display: flex;
@@ -561,6 +568,7 @@
             .mini-table th {
                 color: #888;
                 font-weight: 500;
+                font-size: 20px;
                 padding: 4px 6px;
                 text-align: center;
                 border-bottom: 1px solid #f0f0f0;
@@ -571,10 +579,12 @@
                 border-bottom: 1px solid #f8f8f8;
             }
             .mini-table td.hcol {
+                font-size: 20px;
                 font-weight: 500;
                 color: #555;
             }
             .mini-table td.pcol {
+                font-size: 20px;
                 color: #bbb;
             }
 
@@ -582,18 +592,21 @@
                 background: gold;
                 color: var(--eagle);
                 font-weight: 700;
+                 font-size: 20px;
                 border-radius: 4px;
             }
             .cell-eagle {
                 background: #e3f2fd;
                 color: var(--eagle);
                 font-weight: 700;
+                 font-size: 20px;
                 border-radius: 4px;
             }
             .cell-birdie {
                 background: #e8f5e9;
                 color: var(--birdie);
                 font-weight: 700;
+                 font-size: 20px;
                 border-radius: 4px;
             }
 
@@ -601,17 +614,20 @@
                 background:#DCECD0;
                 color: var(--par);
                 font-weight: 700;
+                 font-size: 20px;
                 border-radius: 4px;
             }
 
             .cell-bogey {
                 background: #fff3e0;
                 color: var(--bogey);
+                 font-size: 20px;
                 border-radius: 4px;
             }
             .cell-double {
                 background: #ffebee;
                 color: var(--double);
+                 font-size: 20px;
                 border-radius: 4px;
             }
 
@@ -621,9 +637,18 @@
                 outline-style: dashed;
                 color: var(--par);
                 font-weight: 700;
+                 font-size: 20px;
                 border-radius: 4px;
             }
 
+            .cell-unsubmitted {
+                // no idea why this shows up brighter than bg
+                background:rgba(255, 255, 255, 0.97);
+                color: var(--par);
+                font-weight: 700;
+                font-size: 20px;
+                border-radius: 4px;
+            }
             .nav-row {
                 display: flex;
                 gap: 10px;
@@ -769,12 +794,14 @@
                     <div class="header-logo-wrapper">
                         <img
                             class="header-logo"
+                            id="header-logo-id"
                             src="assets/tournament_logo.PNG"
                             alt="Tournament Logo"
                         />
                         <span class="logo-caption">sponsored by</span>
                     </div>
                 </div>
+                <!-- moving logo-caption -->
                 <div class="hole-progress" id="hole-progress"></div>
             </div>
             <div class="status-row">
@@ -888,9 +915,7 @@
                     </div>
                     <div class="team-label">
                         <div class="team-names" id="team-names-display">—</div>
-                        <div class="team-sub">
-                            Best shot counts towards score
-                        </div>
+                        <div class="team-sub">Best teammate's shot counts</div>
                     </div>
                     <div class="score-entry">
                         <div class="score-stepper">
@@ -920,9 +945,9 @@
                 </button>
 
                 <div class="totals-card">
-                    <div class="totals-title">Running Total</div>
                     <div class="totals-row">
-                        <div class="totals-team" id="totals-team-name">—</div>
+                        <div class="totals-title">Running Total</div>
+
                         <div class="totals-right">
                             <span class="totals-strokes" id="totals-strokes"
                                 >—</span
@@ -1519,9 +1544,8 @@
                         document.getElementById(
                             "team-names-display",
                         ).textContent = S.p1 + " & " + S.p2;
-                        document.getElementById(
-                            "totals-team-name",
-                        ).textContent = S.p1 + " & " + S.p2;
+
+                        /// 5.12 referencing different part to clean up
 
                         hide("setup-screen");
                         show("scoring-screen");
@@ -1607,11 +1631,15 @@
 
                 document.getElementById("team-names-display").textContent =
                     p1 + " & " + p2;
-                document.getElementById("totals-team-name").textContent =
-                    p1 + " & " + p2;
+                // 5.12 removing totals-team-name to clena up running total
 
                 hide("setup-screen");
                 show("scoring-screen");
+                // 5.12 here instead?
+                // fixes bug where starting a new round again after an initial
+                // round disables the nextHole button functionality
+                updateNavBtns();
+                //
                 buildProgress();
                 buildMini();
                 renderHole();
@@ -1658,6 +1686,40 @@
             }
 
             // ============================================================
+            // HOLE SPONSOR LOGO
+            // ============================================================
+
+            // hole is the
+            function getHoleSponsorImage(hole) {
+                hole_sponsor_map = {
+                    0: "https://static.wixstatic.com/media/78f398_2ffda7a5b1ee43819867ac075fa93468~mv2.png/v1/fill/w_250,h_150,al_c/image.png",
+                    1: "https://static.wixstatic.com/media/78f398_1f8e7d4a19794692967a589fca43b525~mv2.png/v1/fill/w_250,h_150,al_c/image.png",
+                    2: "https://static.wixstatic.com/media/78f398_f9a49f3b30f4402899c5b2223a03d171~mv2.png/v1/fill/w_250,h_150,al_c/image.png",
+                    3: "",
+                    4: "",
+                    5: "",
+                    6: "",
+                    7: "",
+                    8: "",
+                    9: "",
+                    10: "",
+                    11: "",
+                    12: "",
+                    13: "",
+                    14: "",
+                    15: "",
+                    16: "",
+                    17: "",
+                };
+                document.getElementById("header-logo-id").src =
+                    hole_sponsor_map[hole];
+                document
+                    .getElementById("header-logo-id")
+                    .classList.remove("header-logo")
+                    .add("dynamic-header-logo");
+            }
+
+            // ============================================================
             // MINI SCORECARD
             // ============================================================
 
@@ -1701,6 +1763,13 @@
                     if (s == 1) {
                         c.className = "cell-ace";
                     }
+
+                    // 5.12 check if not submited to show as same color
+                    if (S.submitted[i] === false) {
+                        w = document.getElementById("mc-" + i);
+                        w.className = "cell-unsubmitted";
+                    }
+
                     w = document.getElementById("mc-" + S.currentHole);
                     w.className = "cell-nav";
                 });
@@ -1809,9 +1878,7 @@
             // ============================================================
             // SUBMIT HOLE
             // ============================================================
-            //
-            //
-            //
+
             async function submitHole() {
                 const idx = S.currentHole,
                     h = HOLES[idx];
@@ -1820,6 +1887,17 @@
                     showToast("Enter a score first");
                     return;
                 }
+
+                // 5.12 warn about missing previous hole
+                // if all are false ignore
+                // otherwise warn
+                previous_hole_index = idx === 0 ? 17 : idx - 1;
+                if (!S.submitted.every((hole) => hole === false)) {
+                    if (S.submitted[previous_hole_index] === false) {
+                        alert("Remember to submit the previous hole!");
+                    }
+                }
+                //
 
                 //4.30 I think pending submit / save goes here
                 S.submitted[idx] = "pending";
@@ -1897,6 +1975,7 @@
                 // render with updated S.currentHole to display next hole
                 renderHole();
                 updateMini();
+                getHoleSponsorImage(S.currentHole);
             }
 
             // 5.7 adding looparound functionality
@@ -1912,11 +1991,13 @@
                 // render with updated S.currentHole to display next hole
                 renderHole();
                 updateMini();
+                getHoleSponsorImage(S.currentHole);
             }
             function goToHole(i) {
                 S.currentHole = i;
                 renderHole();
                 updateMini();
+                getHoleSponsorImage(S.currentHole);
             }
             function updateNavBtns() {
                 // 5.7 rewriting and may rename this function
@@ -1931,6 +2012,8 @@
                 } else {
                     document.getElementById("btn-next").textContent =
                         "Next Hole  \u2192 ";
+                    // 5.12 THIS is probably the right place, not clear exactly why
+                    document.getElementById("btn-next").onclick = nextHole;
                 }
                 //
             }
@@ -1939,8 +2022,24 @@
             // FINAL SCREEN
             // ============================================================
             function showFinal() {
+                // moving these
+                // hide("scoring-screen");
+                // show("final-screen");
+
+                // 5.12 add check for pending scores
+                //if a false exists
+                complete_submission = S.submitted.every(
+                    (value) => value === true,
+                );
+                if (!complete_submission) {
+                    console.error("MISSING");
+                    alert("Submit all the holes successfully before finishing");
+                    return;
+                }
                 hide("scoring-screen");
                 show("final-screen");
+                //
+                //
                 const total = S.scores.reduce((a, s) => a + (s || 0), 0);
                 const diff = total - PAR_TOTAL;
                 const sign = diff > 0 ? "+" : "";
@@ -1962,6 +2061,10 @@
                 hide("final-screen");
                 show("setup-screen");
                 document.getElementById("hole-progress").innerHTML = "";
+                // 5.12 here?
+                document.getElementById("btn-next").textContent =
+                    "Next Hole " + "\u2192";
+                //   document.getElementById("btn-next").onclick = "nextHole";
             }
 
             // ============================================================
@@ -2105,7 +2208,7 @@
                             await new Promise((resolve) => {
                                 setStatus(
                                     "error",
-                                    `Trying Hole ${i + 1} again on next hole submission or refresh`,
+                                    `Trying Hole ${i + 1} again on next hole submission or page refresh`,
                                 );
                                 setTimeout(() => {
                                     resolve();
