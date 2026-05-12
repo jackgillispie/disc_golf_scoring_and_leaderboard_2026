@@ -787,7 +787,7 @@
                 <div class="error-icon">&#9888;</div>
                 <div class="error-title">Invalid Link</div>
                 <p class="error-msg">
-                    This scoring link is not valid.<br />Please use the link
+                    This scoring link is not valid.<br />Please use a valid link
                     provided by your Tournament Director.
                 </p>
             </div>
@@ -1493,7 +1493,7 @@
             //
             let S;
             game_state_cache = localStorage.getItem("game_state_cache");
-            // checks if not present
+
             if (!game_state_cache) {
                 S = {
                     tournName: "",
@@ -1583,9 +1583,7 @@
             // ============================================================
             // SETUP
             // ============================================================
-            //
-            // Adding submit to localStorage so the user gets saved
-            //
+
             function startRound() {
                 const p1 = document.getElementById("p1").value.trim();
                 const p2 = document.getElementById("p2").value.trim();
@@ -1605,9 +1603,7 @@
                 S.submitted = new Array(18).fill(false);
                 S.currentHole = 0;
 
-                //
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
-                //
 
                 document.getElementById("team-names-display").textContent =
                     p1 + " & " + p2;
@@ -1624,6 +1620,7 @@
             // ============================================================
             // SCREEN HELPERS
             // ============================================================
+
             function show(id) {
                 document.getElementById(id).style.display = "block";
             }
@@ -1634,6 +1631,7 @@
             // ============================================================
             // PROGRESS DOTS
             // ============================================================
+
             function buildProgress() {
                 const el = document.getElementById("hole-progress");
                 el.innerHTML = "";
@@ -1662,6 +1660,7 @@
             // ============================================================
             // MINI SCORECARD
             // ============================================================
+
             function buildMini() {
                 const tb = document.getElementById("mini-body");
                 tb.innerHTML = "";
@@ -1711,8 +1710,6 @@
             // RENDER HOLE
             // ============================================================
             function renderHole() {
-                // 4.30 modified logic to strict comparison for true
-                // and specific check / add for pending
                 const h = HOLES[S.currentHole];
                 document.getElementById("hole-num-display").textContent = h.n;
                 document.getElementById("hole-par-display").textContent =
@@ -1721,10 +1718,7 @@
                     h.dist + " ft";
                 if (S.scores[S.currentHole] === null)
                     S.scores[S.currentHole] = h.par;
-                //5.1o moving to render
-                // 5.4 hoping this changes the mini when we  move
-                // w = document.getElementById("mc-" + S.currentHole);
-                // w.className = "cell-nav";
+
                 updateScoreDisplay(S.scores[S.currentHole], h.par);
                 const btn = document.getElementById("submit-hole-btn");
                 if (S.submitted[S.currentHole] === true) {
@@ -1740,9 +1734,6 @@
                 btn.disabled = false;
                 renderTotals();
                 updateProgress();
-                //5.10
-                // 5.7 removing updateNavBtns
-                // updateNavBtns();
             }
 
             // ============================================================
@@ -2074,7 +2065,7 @@
             async function processQueue() {
                 console.log("ProcessQueue started");
                 // Look through all 18 holes for anything marked "pending"
-                // 5.4 check active_syncing and do nothing if AKfycbyi2F9Xpo8Bw6oRuvtyrjVbPTumVsJTLp8QfjuwPZCHl3EMuo
+                // 5.4 check active_syncing and do nothing if so
                 if (globalThis.active_syncing === true) {
                     return;
                 }
@@ -2091,9 +2082,7 @@
                                 "game_state_cache",
                                 JSON.stringify(S),
                             );
-                            // 5.4 making top indicator show completion
-                            //
-                            //
+
                             // if..else handle case where navigation to new game happens
                             // and element doesn't exist
                             dot_exists = document.getElementById("dot-" + i);
@@ -2112,12 +2101,7 @@
                                     resolve();
                                 }, 1000);
                             });
-                            // setStatus("online", `Sync Hole ${i + 1} complete`);
-
-                            // change submit button ui here ?
                         } else {
-                            // 5.7 changing styles
-                            //
                             await new Promise((resolve) => {
                                 setStatus(
                                     "error",
@@ -2132,8 +2116,6 @@
                 }
                 globalThis.active_syncing = false;
             }
-
-            // 4.30
         </script>
     </body>
 </html>
