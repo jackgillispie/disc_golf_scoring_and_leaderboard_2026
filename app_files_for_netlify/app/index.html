@@ -64,10 +64,12 @@
             }
 
             .header {
-                background: var(--forest);
 
+                background: inherit;
+                background-attachment: fixed;
                 padding: 20px 20px 14px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                // border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
                 position: sticky;
                 top: 0;
                 z-index: 100;
@@ -77,11 +79,25 @@
                 align-items: center;
                 justify-content: space-between;
                 margin-bottom: 12px;
+                border-radius: 20px;
+                background: var(--forest);
+                padding: 15px;
+
             }
+
+            .test {
+                flex: 1;
+                min-height: 0; /* CRITICAL: Allows flex item to shrink below content size */
+                overflow: hidden; /* Prevents stray pixels from bleeding out */
+                display: flex;
+                flex-direction: column;
+
+            }
+
 
             .header-logo-wrapper {
                 flex: 1;
-                min-height: 0; /* CRITICAL: Allows flex item to shrink below content size */
+                 min-height: 0; /* CRITICAL: Allows flex item to shrink below content size */
                 overflow: hidden; /* Prevents stray pixels from bleeding out */
                 display: flex;
                 flex-direction: column;
@@ -90,17 +106,36 @@
                 justify-content: center;
             }
 
+            .dynamic-header-logo-wrapper {
+                flex: 1;
+                // min-height: 0;
+                min-width: 0;
+                overflow: hidden; /* Prevents stray pixels from bleeding out */
+                display: flex;
+                max-width: 100%;
+                max-height: 100%;
+                flex-direction: column;
+                align-items: flex-end;
+                align-content: center;
+                justify-content: center;
+                border-radius: 20px;
+            }
+
             .dynamic-header-logo {
-                // max-width: 100%; /* Don't overflow horizontally */
-                // max-height: 100%; /* Don't overflow vertically */
-                object-fit: contain; /* Keeps aspect ratio while fitting inside */
-                display: block; /* Removes bottom whitespace gap */
-                aspect-ratio: 1 / 1;
+                // 5.12 trying again
+                width: auto;
+                height: 100px;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                display: block;
+                background-color: var(--lime);
+                padding: 5px;
             }
 
             .header-logo {
-                max-width: 60%; /* Don't overflow horizontally */
-                max-height: 60%; /* Don't overflow vertically */
+                max-width: 50%; /* Don't overflow horizontally */
+                max-height: 50%; /* Don't overflow vertically */
                 object-fit: cover; /* Keeps aspect ratio while fitting inside */
                 display: block; /* Removes bottom whitespace gap */
                 aspect-ratio: 1 / 1;
@@ -146,12 +181,16 @@
             .hole-progress {
                 display: flex;
                 gap: 3px;
+                justify-content: space-evenly;
+
             }
             .prog-dot {
                 width: 14px;
                 height: 5px;
                 border-radius: 3px;
+
                 background: rgba(255, 255, 255, 0.12);
+
                 transition: background 0.3s;
                 cursor: pointer;
             }
@@ -160,6 +199,9 @@
             }
             .prog-dot.active {
                 background: rgba(139, 195, 74, 0.55);
+                background: white;
+                outline-style: dashed;
+                outline-color:  rgba(139, 195, 74, 0.55);
             }
             // 4.30 new style for pending status
             .prog-dot.pending {
@@ -791,14 +833,14 @@
                         <div class="course-surname">2026 Tournament</div>
                     </div>
 
-                    <div class="header-logo-wrapper">
+                    <div class="header-logo-wrapper" id="header-logo-wrapper">
                         <img
                             class="header-logo"
                             id="header-logo-id"
                             src="assets/tournament_logo.PNG"
                             alt="Tournament Logo"
                         />
-                        <span class="logo-caption">sponsored by</span>
+                        <!-- <span class="logo-caption">sponsored by</span> -->
                     </div>
                 </div>
                 <!-- moving logo-caption -->
@@ -1019,12 +1061,12 @@
             //5.4 active_syncing variable will help prevent unnecessary concurrent retry mechanisms
             let active_syncing = false;
             const APPS_SCRIPT_URL =
-                "https://script.google.com/macros/s/AKfycbxVzZl4Rs0sWCP68ysQS8sY1WnFvxorp2IEzeFPxe3XGvE7Q2lY0nJRIEEnidCNgWU9gQ/exec";
+                "https://script.google.com/macros/s/AKfycbxYxI0i2SFMvZ5-YnkG35Giy2q89Q-qZfSVycY2isyJq7nN4CfprPooM0yPehB37pybZA/exec";
 
             //in case we decide to call appscript from serverless netlify backend vs frontend
-            const netlify_function_name = "save-score";
-            const netlify_domain = "rad-bublanina-4d627c.netlify.app";
-            let netlify_function_url = `https://${netlify_domain}/.netlify/functions/${netlify_function_name}`;
+            // const netlify_function_name = "save-score";
+            // const netlify_domain = "rad-bublanina-4d627c.netlify.app";
+            // let netlify_function_url = `https://${netlify_domain}/.netlify/functions/${netlify_function_name}`;
 
             // ============================================================
             // VALID GROUP TOKENS
@@ -1033,452 +1075,340 @@
             // Each group gets a unique URL: https://your-site.netlify.app?g=TOKEN
             // ============================================================
             const GROUP_TOKENS = {
-                "Slightly-Small Saboteurs": {
-                    group: "Slightly-Small Saboteurs",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Double-Grip Dwarves": {
-                    group: "Double-Grip Dwarves",
+                "Anhyzer Anvils": {
+                    group: "Anhyzer Anvils",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Ankle-Biters Anonymous": {
                     group: "Ankle-Biters Anonymous",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Gravel-Pit Putters": {
-                    group: "Gravel-Pit Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Fairway-Finder Fiends": {
-                    group: "Fairway-Finder Fiends",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Flex-Shot Phantoms": {
-                    group: "Flex-Shot Phantoms",
+                "Bark Biters": {
+                    group: "Bark Biters",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Basket Boggarts": {
                     group: "Basket Boggarts",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Rose-Thorn Rollers": {
-                    group: "Rose-Thorn Rollers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Vertical-Limit Voiders": {
-                    group: "The Vertical-Limit Voiders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Miniature Mountain-Men": {
-                    group: "Miniature Mountain-Men",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Backshot Bark Biters": {
-                    group: "Backshot Bark Biters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Putter-Pocket Pranksters": {
-                    group: "Putter-Pocket Pranksters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Caddy-Cap Crusaders": {
-                    group: "Caddy-Cap Crusaders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Anhyzer Anvils": {
-                    group: "Anhyzer Anvils",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Anvil Approaches": {
-                    group: "Anvil Approaches",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Chain-Bang Chums": {
-                    group: "Chain-Bang Chums",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Birdie Bandits": {
-                    group: "Birdie Bandits",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Minuscule Misfits": {
-                    group: "The Minuscule Misfits",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Scramble Scoundrels": {
-                    group: "Scramble Scoundrels",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Compact Commandos": {
-                    group: "Compact Commandos",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Turbo-Putt Trolls": {
-                    group: "Turbo-Putt Trolls",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Below-the-Belt Bandits": {
-                    group: "Below-the-Belt Bandits",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Fairway Faeries": {
-                    group: "Fairway Faeries",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Nose-Angle Knaves": {
-                    group: "Nose-Angle Knaves",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Trellis Tossers": {
-                    group: "Trellis Tossers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
                 "Basket Breakers": {
                     group: "Basket Breakers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Grip-Lock Goblins": {
-                    group: "Grip-Lock Goblins",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Circle One Centurions": {
-                    group: "Circle One Centurions",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Flicker-Fire Imps": {
-                    group: "Flicker-Fire Imps",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Thumber Thugs": {
-                    group: "Thumber Thugs",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Little-League Legends": {
-                    group: "Little-League Legends",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Chains Chasers": {
-                    group: "The Chains Chasers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Loft-Shot Lads": {
-                    group: "Loft-Shot Lads",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Roller Rebels": {
-                    group: "The Roller Rebels",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "High-Speed Hobgoblins": {
-                    group: "High-Speed Hobgoblins",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Basket-Case Burglars": {
-                    group: "Basket-Case Burglars",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Plastic Heavyweights": {
-                    group: "The Plastic Heavyweights",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Cobblestone Kings": {
-                    group: "Cobblestone Kings",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Bogey Brownies": {
-                    group: "Bogey Brownies",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Porch Sitters": {
-                    group: "Porch Sitters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Grass-Top Gliders": {
-                    group: "The Grass-Top Gliders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Short-Range Sharpshooters": {
-                    group: "The Short-Range Sharpshooters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Off-the-Fairway Outlaws": {
-                    group: "Off-the-Fairway Outlaws",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Spore Sprouts": {
-                    group: "Spore Sprouts",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Teeny-Tiny Titans": {
-                    group: "The Teeny-Tiny Titans",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Gnomish Gentry": {
-                    group: "Gnomish Gentry",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Sub-Clover Squad": {
-                    group: "Sub-Clover Squad",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Foxglove Flickers": {
-                    group: "Foxglove Flickers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Tunnel-Shot Troglodytes": {
-                    group: "Tunnel-Shot Troglodytes",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Pipe Puffers": {
-                    group: "Pipe Puffers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Bonsai Brigade": {
-                    group: "Bonsai Brigade",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mycelium Marauders": {
-                    group: "Mycelium Marauders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Under-the-Radar Rogues": {
-                    group: "Under-the-Radar Rogues",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Windy Wizards": {
-                    group: "Windy Wizards",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Hyzer Hijackers": {
-                    group: "Hyzer Hijackers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Inch-High Iron-Leaves": {
-                    group: "Inch-High Iron-Leaves",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Stump-Hitters": {
-                    group: "Stump-Hitters",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Basket-Hanging Hoodlums": {
                     group: "Basket-Hanging Hoodlums",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Small-Batch Bad-Boys": {
-                    group: "Small-Batch Bad-Boys",
+                "Birdie Bandits": {
+                    group: "Birdie Bandits",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Garden Gate Gliders": {
-                    group: "Garden Gate Gliders",
+                "Bonsai Brigade": {
+                    group: "Bonsai Brigade",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "The Shin-Height Shufflers": {
-                    group: "The Shin-Height Shufflers",
+                "Bramble Boys": {
+                    group: "Bramble Boys",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Iron-Leaf Infantry": {
-                    group: "Iron-Leaf Infantry",
+                "Caddy-Cap Crusaders": {
+                    group: "Caddy-Cap Crusaders",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Basket BreakersGranite Gliders": {
-                    group: "Basket BreakersGranite Gliders",
+                "Chain Bangers": {
+                    group: "Chain Bangers",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Disc-Golf Diggers": {
-                    group: "Disc-Golf Diggers",
+                "Chain-Bang Chums": {
+                    group: "Chain-Bang Chums",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Half-Pint Phantoms": {
-                    group: "Half-Pint Phantoms",
+                "Cobblestone Kings": {
+                    group: "Cobblestone Kings",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Tulip Tomahawks": {
-                    group: "Tulip Tomahawks",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Wheelbarrow Wingers": {
-                    group: "Wheelbarrow Wingers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Tee-Box Terrors": {
-                    group: "Tee-Box Terrors",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Verticality Challenged": {
-                    group: "Verticality Challenged",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mando Mischief": {
-                    group: "Mando Mischief",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Dead-Straight Dwarves": {
-                    group: "Dead-Straight Dwarves",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Pebble Pushers": {
-                    group: "Pebble Pushers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Knee-High Knucklers": {
-                    group: "Knee-High Knucklers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Over-the-Hedge Hyzers": {
-                    group: "Over-the-Hedge Hyzers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Bark Biters": {
-                    group: "Bark Biters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Pocket-Sized Putters": {
-                    group: "The Pocket-Sized Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Tomahawk Trolls": {
-                    group: "Tomahawk Trolls",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Grass-Stain Gang": {
-                    group: "The Grass-Stain Gang",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Stable Stalagmites": {
-                    group: "Stable Stalagmites",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Thicket Throwers": {
-                    group: "The Thicket Throwers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Spit-Out Sprites": {
-                    group: "Spit-Out Sprites",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mithril Midranges": {
-                    group: "Mithril Midranges",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Marigold Mashers": {
-                    group: "Marigold Mashers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Petunia Putters": {
-                    group: "Petunia Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Bramble Birdies": {
-                    group: "Bramble Birdies",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Granite Gliders": {
-                    group: "Granite Gliders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Putter Prowlers": {
-                    group: "Putter Prowlers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Low-Down Dirty Dogs": {
-                    group: "The Low-Down Dirty Dogs",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Ace Runners": {
-                    group: "The Ace Runners",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Turnover Trowels": {
-                    group: "Turnover Trowels",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mossy Midrangers": {
-                    group: "Mossy Midrangers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Knee-High Knockouts": {
-                    group: "Knee-High Knockouts",
+                "Compact Commandos": {
+                    group: "Compact Commandos",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Dahlia Drivers": {
                     group: "Dahlia Drivers",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Maximum Distance Miscreants": {
-                    group: "Maximum Distance Miscreants",
+                "Double-Grip Dwarves": {
+                    group: "Double-Grip Dwarves",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Ground-Level Grifters": {
-                    group: "Ground-Level Grifters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Overstable Ogres": {
-                    group: "Overstable Ogres",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Leaf Litter Legion": {
-                    group: "Leaf Litter Legion",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Petite-Power Players": {
-                    group: "Petite-Power Players",
+                "Fairway Faeries": {
+                    group: "Fairway Faeries",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Fairway Felons": {
                     group: "Fairway Felons",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Picket-Fence Putters": {
-                    group: "Picket-Fence Putters",
+                "Fiends of Fairway": {
+                    group: "Fiends of Fairway",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Understable Undercroft": {
-                    group: "Understable Undercroft",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Pint-Sized Putters": {
-                    group: "The Pint-Sized Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Par-Saving Pixies": {
-                    group: "Par-Saving Pixies",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Low-Profile Pros": {
-                    group: "The Low-Profile Pros",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Shank Shifters": {
-                    group: "The Shank Shifters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Sceckled Spores": {
-                    group: "Sceckled Spores",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mound-Bound Marauders": {
-                    group: "Mound-Bound Marauders",
+                "Foxglove Flickers": {
+                    group: "Foxglove Flickers",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Fun-Sized Force": {
                     group: "Fun-Sized Force",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Shadow-Shortened Scoundrels": {
-                    group: "Shadow-Shortened Scoundrels",
+                "Garden Gate Gliders": {
+                    group: "Garden Gate Gliders",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "The Wee-Folk Warriors": {
-                    group: "The Wee-Folk Warriors",
+                "Gnomish Gentry": {
+                    group: "Gnomish Gentry",
                     tourn: "LKNITP Disc Bash 2026",
                 },
-                "Low-Ceiling Lurkers": {
-                    group: "Low-Ceiling Lurkers",
+                "Granite Gliders": {
+                    group: "Granite Gliders",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Grass-Top Gliders": {
+                    group: "Grass-Top Gliders",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Gravel-Pit Putters": {
+                    group: "Gravel-Pit Putters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Grip-Lock Goblins": {
+                    group: "Grip-Lock Goblins",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Ground-Level Grifters": {
+                    group: "Ground-Level Grifters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Half-Pint Phantoms": {
+                    group: "Half-Pint Phantoms",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "High-Speed Hobgoblins": {
+                    group: "High-Speed Hobgoblins",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Inch-High Imps": {
+                    group: "Inch-High Imps",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Knee-High Knockouts": {
+                    group: "Knee-High Knockouts",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Knee-High Knucklers": {
+                    group: "Knee-High Knucklers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Leaf Litter Legion": {
+                    group: "Leaf Litter Legion",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Little-League Legends": {
+                    group: "Little-League Legends",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Loft-Shot Lads": {
+                    group: "Loft-Shot Lads",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Low-Profile Pros": {
+                    group: "Low-Profile Pros",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Micro-Stature Marauders": {
                     group: "Micro-Stature Marauders",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Miniature Mountain-Men": {
+                    group: "Miniature Mountain-Men",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Mithril Midrangers": {
+                    group: "Mithril Midrangers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Mossy Midrangers": {
+                    group: "Mossy Midrangers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Mound-Bound Marauders": {
+                    group: "Mound-Bound Marauders",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Mycelium Marauders": {
+                    group: "Mycelium Marauders",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Noggin Gnomes": {
+                    group: "Noggin Gnomes",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Overstable Ogres": {
+                    group: "Overstable Ogres",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Pebble Pushers": {
+                    group: "Pebble Pushers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Petite-Power Players": {
+                    group: "Petite-Power Players",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Petunia Putters": {
+                    group: "Petunia Putters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Picket-Fence Putters": {
+                    group: "Picket-Fence Putters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Pint-Sized Putters": {
+                    group: "Pint-Sized Putters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Pipe Puffers": {
+                    group: "Pipe Puffers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Pocket-Sized Putters": {
+                    group: "Pocket-Sized Putters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Porch Sitters": {
+                    group: "Porch Sitters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Putter Prowlers": {
+                    group: "Putter Prowlers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Putter-Pocket Pranksters": {
+                    group: "Putter-Pocket Pranksters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Rose-Thorn Rollers": {
+                    group: "Rose-Thorn Rollers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Scramble Scoundrels": {
+                    group: "Scramble Scoundrels",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Shadow-Shortened Scoundrels": {
+                    group: "Shadow-Shortened Scoundrels",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Shank Shifters": {
+                    group: "Shank Shifters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Shin-Height Shufflers": {
+                    group: "Shin-Height Shufflers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Short-Range Sharpshooters": {
+                    group: "Short-Range Sharpshooters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Slightly-Small Saboteurs": {
+                    group: "Slightly-Small Saboteurs",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Small-Batch Boys": {
+                    group: "Small-Batch Boys",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Speckled Spores": {
+                    group: "Speckled Spores",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Spore Sprouts": {
+                    group: "Spore Sprouts",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Stump-Hitters": {
+                    group: "Stump-Hitters",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Tee-Box Terrors": {
+                    group: "Tee-Box Terrors",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Teeny-Tiny Titans": {
+                    group: "Teeny-Tiny Titans",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "The Ace Runners": {
+                    group: "The Ace Runners",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "The Chains Chasers": {
+                    group: "The Chains Chasers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "The Grass-Stain Gang": {
+                    group: "The Grass-Stain Gang",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "The Low-Down Dirty Dogs": {
+                    group: "The Low-Down Dirty Dogs",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "The Minuscule Misfits": {
+                    group: "The Minuscule Misfits",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "The Plastic Heavyweights": {
+                    group: "The Plastic Heavyweights",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "The Roller Rebels": {
+                    group: "The Roller Rebels",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "The Thicket Throwers": {
+                    group: "The Thicket Throwers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Tomahawk Trolls": {
+                    group: "Tomahawk Trolls",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Trellis Tossers": {
+                    group: "Trellis Tossers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Turbo-Putt Trolls": {
+                    group: "Turbo-Putt Trolls",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Turnover Trowels": {
+                    group: "Turnover Trowels",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Verticality Challenged": {
+                    group: "Verticality Challenged",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Wee-Folk Warriors": {
+                    group: "Wee-Folk Warriors",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Wheelbarrow Wingers": {
+                    group: "Wheelbarrow Wingers",
+                    tourn: "LKNITP Disc Bash 2026",
+                },
+                "Windy Wizards": {
+                    group: "Windy Wizards",
                     tourn: "LKNITP Disc Bash 2026",
                 },
             };
@@ -1541,6 +1471,21 @@
 
                 if (game_state_cache) {
                     if (JSON.parse(game_state_cache).p1) {
+                        // 5.12 adding check against switching QR codes midplay
+                        const check_params = new URLSearchParams(
+                            window.location.search,
+                        );
+                        const check_token = check_params.get("g");
+                        if (JSON.parse(game_state_cache).token != check_token) {
+                            alert_message = [
+                                `You must submit scores under this team name.`,
+                                `If you scanned the wrong QR code, clear your browser cache
+and website data, then scan the correct QR code to restart
+from the beginning`,
+                            ].join("\n");
+                            alert(alert_message);
+                        }
+
                         document.getElementById(
                             "team-names-display",
                         ).textContent = S.p1 + " & " + S.p2;
@@ -1691,32 +1636,39 @@
 
             // hole is the
             function getHoleSponsorImage(hole) {
-                hole_sponsor_map = {
-                    0: "https://static.wixstatic.com/media/78f398_2ffda7a5b1ee43819867ac075fa93468~mv2.png/v1/fill/w_250,h_150,al_c/image.png",
-                    1: "https://static.wixstatic.com/media/78f398_1f8e7d4a19794692967a589fca43b525~mv2.png/v1/fill/w_250,h_150,al_c/image.png",
-                    2: "https://static.wixstatic.com/media/78f398_f9a49f3b30f4402899c5b2223a03d171~mv2.png/v1/fill/w_250,h_150,al_c/image.png",
-                    3: "",
-                    4: "",
-                    5: "",
-                    6: "",
-                    7: "",
-                    8: "",
-                    9: "",
-                    10: "",
-                    11: "",
-                    12: "",
-                    13: "",
-                    14: "",
-                    15: "",
-                    16: "",
-                    17: "",
+                hole_sponsor_map = hole_sponsor_map = {
+                    0: "https://static.wixstatic.com/media/78f398_a72ef4675a1b4917b78d914b668fc5e0~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Tenable",
+                    1: "https://static.wixstatic.com/media/78f398_4c442786473043be82b14bb64bb44c0a~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "CNP Technologies"
+                    2: "https://static.wixstatic.com/media/78f398_a5710c94a7244113a92d906ac4d7b9d3~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "COLORTOKENS',
+                    3: "https://static.wixstatic.com/media/78f398_1f8e7d4a19794692967a589fca43b525~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Trace3",
+                    4: "", // "OneCloud",
+                    5: "https://static.wixstatic.com/media/78f398_213a9c2637ee46a589ba2f338362da7a~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Check Point",
+                    6: "https://static.wixstatic.com/media/78f398_54283e1aec7c4a68851573fb7ff1c813~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Cribl",
+                    7: "https://static.wixstatic.com/media/78f398_4683e1e5d48d42c49963596956729963~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Flexential",
+                    8: "https://static.wixstatic.com/media/78f398_f20f48a82da44e8d9dba6313cd842de0~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "runZero",
+                    9: "https://static.wixstatic.com/media/78f398_fc0dc56893b64a1395ba159236df28ad~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Delinia",
+                    10: "https://static.wixstatic.com/media/78f398_300e416d234946118926550348197ede~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Grip",
+                    11: "https://static.wixstatic.com/media/78f398_77f8d0c595cd48ecbfe5d52b6a23daa2~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "AccessIT per Joe"
+                    12: "https://static.wixstatic.com/media/78f398_77f8d0c595cd48ecbfe5d52b6a23daa2~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "AccessIT per Joe"
+                    13: "https://static.wixstatic.com/media/78f398_77f8d0c595cd48ecbfe5d52b6a23daa2~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "AccessIT Group",
+                    14: "https://static.wixstatic.com/media/78f398_1b434678bfb94526a5f5b559e1d0b2b6~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Radiant Logic",
+                    15: "https://static.wixstatic.com/media/78f398_66058a0f5be648739d8edf91ee5ca85e~mv2.png/v1/fill/w_250,h_150,al_c/image.png", //"SEGRA",
+                    16: "https://static.wixstatic.com/media/78f398_ab67887363324b0ebcd1694c8abc44a1~mv2.png/v1/fill/w_250,h_150,al_c/image.png", //"Lowe's",
+                    17: "https://static.wixstatic.com/media/78f398_f9a49f3b30f4402899c5b2223a03d171~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "TekSystems",
                 };
                 document.getElementById("header-logo-id").src =
                     hole_sponsor_map[hole];
+                // 5.12 change wrpaper to get right size?
+                document
+                    .getElementById("header-logo-wrapper")
+                    .classList.replace(
+                        "header-logo-wrapper",
+                        "dynamic-header-logo-wrapper",
+                    );
+
                 document
                     .getElementById("header-logo-id")
-                    .classList.remove("header-logo")
-                    .add("dynamic-header-logo");
+                    .classList.replace("header-logo", "dynamic-header-logo");
             }
 
             // ============================================================
