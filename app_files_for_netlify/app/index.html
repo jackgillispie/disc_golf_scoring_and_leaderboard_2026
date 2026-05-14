@@ -1074,13 +1074,17 @@
             // Format: { token: { group, tourn } }
             // Each group gets a unique URL: https://your-site.netlify.app?g=TOKEN
             // ============================================================
+            //
+            // 5.13 defining a constant tourn_name to reduce content in group_tokens
+            const tourn_name = "LKNITP Disc Bash 2026";
+            //
             const GROUP_TOKENS = {
                 "Anhyzer Anvils": {
-                    group: "Anhyzer Anvils",
+                    group: "A1",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Ankle-Biters Anonymous": {
-                    group: "Ankle-Biters Anonymous",
+                    group: "Q18",
                     tourn: "LKNITP Disc Bash 2026",
                 },
                 "Bark Biters": {
@@ -1500,6 +1504,7 @@ from the beginning`,
                         renderHole();
                         //5.7 adding so refresh triggers update if necessary
                         updateNavBtns();
+                        getHoleSponsorImage(S.currentHole);
                         // 5.4 retries on refresh, hopefully not on dry start
                         processQueue();
                     }
@@ -1526,10 +1531,14 @@ from the beginning`,
                     // Valid token — pre-fill and lock group fields
                     S.token = token;
 
-                    document.getElementById("tourn-name").value = group.tourn;
+                    // 5.13 reference constant to remove excessive 'tourn'
+                    // values in group_tokens dict
+                    //
+                    document.getElementById("tourn-name").value = tourn_name;
+                    // 5.13 changign reference to token, not group.group
                     document.getElementById(
                         "group-locked-display",
-                    ).textContent = group.group;
+                    ).textContent = token;
                     document.getElementById(
                         "group-locked-display",
                     ).style.display = "block";
@@ -1539,8 +1548,9 @@ from the beginning`,
                         "none";
                     document.getElementById("locked-banner").style.display =
                         "flex";
+                    // 5.13 changing reference to token not group.gorup
                     document.getElementById("locked-group-name").textContent =
-                        group.group;
+                        token;
 
                     show("setup-screen");
                 }
@@ -1564,13 +1574,38 @@ from the beginning`,
                 const group = GROUP_TOKENS[S.token];
                 S.tournName =
                     document.getElementById("tourn-name").value.trim() ||
-                    group.tourn;
+                    tourn_name;
                 S.groupName = group.group;
                 S.p1 = p1;
                 S.p2 = p2;
                 S.scores = new Array(18).fill(null);
                 S.submitted = new Array(18).fill(false);
-                S.currentHole = 0;
+
+                // 5.13 startup functionality to start players on a specific hole, preassigned with names
+                // this assumes a group naming convention of _#_, where first char is eliminated
+                // and the remaining characters are cast as an integer
+                //
+                hole_preset_str = group["group"];
+                hole_preset_str = hole_preset_str.slice(
+                    1,
+                    hole_preset_str.length,
+                );
+                hole_preset_num = parseInt(hole_preset_str, 10) - 1; // returns an int or NaN
+                console.log(hole_preset_num);
+                if (
+                    hole_preset_num > 18 ||
+                    hole_preset_num < 1 ||
+                    hole_preset_num == NaN
+                ) {
+                    console.log(
+                        "invalid group format, consult TD or app administrator for correction",
+                    );
+                    S.currentHole = 0;
+                } else {
+                    S.currentHole = hole_preset_num;
+                }
+
+                //
 
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
 
@@ -1588,6 +1623,7 @@ from the beginning`,
                 buildProgress();
                 buildMini();
                 renderHole();
+                getHoleSponsorImage(S.currentHole);
             }
 
             // ============================================================
@@ -1637,7 +1673,7 @@ from the beginning`,
             // hole is the
             function getHoleSponsorImage(hole) {
                 hole_sponsor_map = hole_sponsor_map = {
-                    0: "https://static.wixstatic.com/media/78f398_a72ef4675a1b4917b78d914b668fc5e0~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Tenable",
+                    0: "https://static.wixstatic.com/media/78f398_b25cda3dbd1145c79360bdb48122075f~mv2.png/v1/fit/w_250,h_150,al_c/image.png", // "Tenable",
                     1: "https://static.wixstatic.com/media/78f398_4c442786473043be82b14bb64bb44c0a~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "CNP Technologies"
                     2: "https://static.wixstatic.com/media/78f398_a5710c94a7244113a92d906ac4d7b9d3~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "COLORTOKENS',
                     3: "https://static.wixstatic.com/media/78f398_1f8e7d4a19794692967a589fca43b525~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Trace3",
@@ -1645,7 +1681,7 @@ from the beginning`,
                     5: "https://static.wixstatic.com/media/78f398_213a9c2637ee46a589ba2f338362da7a~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Check Point",
                     6: "https://static.wixstatic.com/media/78f398_54283e1aec7c4a68851573fb7ff1c813~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Cribl",
                     7: "https://static.wixstatic.com/media/78f398_4683e1e5d48d42c49963596956729963~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Flexential",
-                    8: "https://static.wixstatic.com/media/78f398_f20f48a82da44e8d9dba6313cd842de0~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "runZero",
+                    8: "https://static.wixstatic.com/media/78f398_3bb43ca5fecd4fe5b308059de4fc4bec~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "runZero",
                     9: "https://static.wixstatic.com/media/78f398_fc0dc56893b64a1395ba159236df28ad~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Delinia",
                     10: "https://static.wixstatic.com/media/78f398_300e416d234946118926550348197ede~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Grip",
                     11: "https://static.wixstatic.com/media/78f398_77f8d0c595cd48ecbfe5d52b6a23daa2~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "AccessIT per Joe"
@@ -2012,11 +2048,42 @@ from the beginning`,
             function newRound() {
                 hide("final-screen");
                 show("setup-screen");
+                // 5.13 adding some startup functionality for reset
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get("g");
+                if (!token) {
+                    show("error-screen");
+                    return;
+                }
+                const group = GROUP_TOKENS[token];
+                if (!group) {
+                    show("error-screen");
+                    return;
+                }
+                S.token = token;
+                // 5.13 TODO change reference to some constant
+                //
+                document.getElementById("tourn-name").value = tourn_name;
+
+                // 5.13 changing reference to token, not group
+                document.getElementById("group-locked-display").textContent =
+                    token;
+                document.getElementById("group-locked-display").style.display =
+                    "block";
+                document.getElementById("group-locked-note").style.display =
+                    "block";
+                document.getElementById("group-name").style.display = "none";
+                document.getElementById("locked-banner").style.display = "flex";
+                // 5.13 changing reference to token, not group
+                document.getElementById("locked-group-name").textContent =
+                    token;
+
+                // 5.13 clearing game state for new round
+                localStorage.removeItem("game_state_cache");
+                console.log("removed game state cache");
                 document.getElementById("hole-progress").innerHTML = "";
-                // 5.12 here?
                 document.getElementById("btn-next").textContent =
                     "Next Hole " + "\u2192";
-                //   document.getElementById("btn-next").onclick = "nextHole";
             }
 
             // ============================================================
