@@ -1061,7 +1061,7 @@
             //5.4 active_syncing variable will prevent unnecessary concurrent retry mechanisms
             let active_syncing = false;
             const APPS_SCRIPT_URL =
-                "https://script.google.com/macros/s/AKfycbzPhd0JWyXWiQKsmCNMoK4MXhcCCgbuDBNd3mAhB3k6rbUNYwJAlKHot_exlMJYeMU8Xg/exec";
+                "https://script.google.com/macros/s/AKfycbxiY3mdLGxpp3E7shDme5MWIKlTa8F_JYE7THto3-E2OMarK3q38JyWRJrBEp2NKYPxSg/exec";
 
             //in case we decide to call appscript from serverless netlify backend vs frontend
             // const netlify_function_name = "save-score";
@@ -1297,7 +1297,15 @@ from the beginning`,
                     showToast("Enter both player names");
                     return;
                 }
-
+                if (
+                    /^[A-Za-z0-9 ]+$/.test(p1) === false ||
+                    /^[A-Za-z0-9 ]+$/.test(p2) === false
+                ) {
+                    alert(
+                        "Only use alphanumeric characters and single spaces for names",
+                    );
+                    return;
+                }
                 const group = GROUP_TOKENS[S.token];
                 S.tournName =
                     document.getElementById("tourn-name").value.trim() ||

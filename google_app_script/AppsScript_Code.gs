@@ -160,10 +160,10 @@ function writeScore(ss, data) {
 
 let my_data = {
 
-"Tournament": /^[A-Za-z0-9 ]+$/.test(data.Tournament)? data.Tournament : null, // !!! only allow A-Z 0-9 whitespace
+    "Tournament": /^[A-Za-z0-9 ]+$/.test(data.Tournament)? data.Tournament : null, // !!! only allow A-Z 0-9 whitespace
 "Group": /^[0-9]+[A-Z]$/.test(data.Group) ? data.Group : null, // "1A"
 "Token": data.Token, // Verified previous steps "Anhyzer Anvils"
-"Players": /^[A-Za-z0-9 ]+$/.test(data.Players) ? data.Players : null, // "<img src=x onerror=alert('XSS')>" only allow whitespace and alphanumeric characters
+"Players": /^[A-Za-z0-9 &]+$/.test(data.Players) ? data.Players : null, // "<img src=x onerror=alert('XSS')>" only allow whitespace and alphanumeric characters
 "Hole": /^\d+$/.test(data.Hole) ? data.Hole : null, // 1,
 "Par": /^\d+$/.test(data.Par) ? data.Par : null, // 3,
 "Dist": /^\d+$/.test(data.Dist) ? data.Dist : null, //276,
