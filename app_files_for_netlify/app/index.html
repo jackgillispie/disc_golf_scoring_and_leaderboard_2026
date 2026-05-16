@@ -87,8 +87,8 @@
 
             .test {
                 flex: 1;
-                min-height: 0; /* CRITICAL: Allows flex item to shrink below content size */
-                overflow: hidden; /* Prevents stray pixels from bleeding out */
+                min-height: 0;
+                overflow: hidden;
                 display: flex;
                 flex-direction: column;
 
@@ -97,8 +97,8 @@
 
             .header-logo-wrapper {
                 flex: 1;
-                 min-height: 0; /* CRITICAL: Allows flex item to shrink below content size */
-                overflow: hidden; /* Prevents stray pixels from bleeding out */
+                 min-height: 0;
+                overflow: hidden;
                 display: flex;
                 flex-direction: column;
                 align-items: flex-end;
@@ -108,9 +108,7 @@
 
             .dynamic-header-logo-wrapper {
                 flex: 1;
-                // min-height: 0;
-                min-width: 0;
-                overflow: hidden; /* Prevents stray pixels from bleeding out */
+                 min-height: 0;
                 display: flex;
                 max-width: 100%;
                 max-height: 100%;
@@ -119,18 +117,19 @@
                 align-content: center;
                 justify-content: center;
                 border-radius: 20px;
+                margin: -15px;
             }
 
             .dynamic-header-logo {
-                // 5.12 trying again
                 width: auto;
                 height: 100px;
-                max-width: 100%;
+                max-width: 70%;
                 max-height: 100%;
                 object-fit: contain;
                 display: block;
                 background-color: var(--lime);
                 padding: 5px;
+                border-radius: 0 20px 20px 0;
             }
 
             .header-logo {
@@ -143,10 +142,9 @@
             }
 
             .logo-caption {
-                font-size: 0.8rem; /* Adjust as needed */
-
-                text-align: right; /* Ensures text lines up with the right edge */
-                margin-top: 4px; /* Small gap between logo and text */
+                font-size: 0.8rem;
+                text-align: right;
+                margin-top: 4px;
                 color: white;
             }
 
@@ -182,6 +180,11 @@
                 display: flex;
                 gap: 3px;
                 justify-content: space-evenly;
+                padding: 12px;
+                margin-left: 10px;
+                margin-right: 10px;
+                border-radius: 10px;
+                background: var(--forest);
 
             }
             .prog-dot {
@@ -203,11 +206,9 @@
                 outline-style: dashed;
                 outline-color:  rgba(139, 195, 74, 0.55);
             }
-            // 4.30 new style for pending status
             .prog-dot.pending {
                 background: #f9a825;
             }
-            // 4.30
 
             // 5.1 adding selector for statustext b/c something broke in css2
 
@@ -544,7 +545,7 @@
                 color: white;
             }
             .btn-submit-hole.pending {
-                backgorund: purple;
+                background: #f9a825;
                 color: white;
             }
             .totals-card {
@@ -843,7 +844,6 @@
                         <!-- <span class="logo-caption">sponsored by</span> -->
                     </div>
                 </div>
-                <!-- moving logo-caption -->
                 <div class="hole-progress" id="hole-progress"></div>
             </div>
             <div class="status-row">
@@ -1058,10 +1058,10 @@
             // CONFIG — paste your deployed URLs here
             // ============================================================
 
-            //5.4 active_syncing variable will help prevent unnecessary concurrent retry mechanisms
+            //5.4 active_syncing variable will prevent unnecessary concurrent retry mechanisms
             let active_syncing = false;
             const APPS_SCRIPT_URL =
-                "https://script.google.com/macros/s/AKfycbxYxI0i2SFMvZ5-YnkG35Giy2q89Q-qZfSVycY2isyJq7nN4CfprPooM0yPehB37pybZA/exec";
+                "https://script.google.com/macros/s/AKfycbzPhd0JWyXWiQKsmCNMoK4MXhcCCgbuDBNd3mAhB3k6rbUNYwJAlKHot_exlMJYeMU8Xg/exec";
 
             //in case we decide to call appscript from serverless netlify backend vs frontend
             // const netlify_function_name = "save-score";
@@ -1074,347 +1074,83 @@
             // Format: { token: { group, tourn } }
             // Each group gets a unique URL: https://your-site.netlify.app?g=TOKEN
             // ============================================================
-            //
+
             // 5.13 defining a constant tourn_name to reduce content in group_tokens
             const tourn_name = "LKNITP Disc Bash 2026";
-            //
+
             const GROUP_TOKENS = {
-                "Anhyzer Anvils": {
-                    group: "A1",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Ankle-Biters Anonymous": {
-                    group: "Q18",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Bark Biters": {
-                    group: "Bark Biters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Basket Boggarts": {
-                    group: "Basket Boggarts",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Basket Breakers": {
-                    group: "Basket Breakers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Basket-Hanging Hoodlums": {
-                    group: "Basket-Hanging Hoodlums",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Birdie Bandits": {
-                    group: "Birdie Bandits",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Bonsai Brigade": {
-                    group: "Bonsai Brigade",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Bramble Boys": {
-                    group: "Bramble Boys",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Caddy-Cap Crusaders": {
-                    group: "Caddy-Cap Crusaders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Chain Bangers": {
-                    group: "Chain Bangers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Chain-Bang Chums": {
-                    group: "Chain-Bang Chums",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Cobblestone Kings": {
-                    group: "Cobblestone Kings",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Compact Commandos": {
-                    group: "Compact Commandos",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Dahlia Drivers": {
-                    group: "Dahlia Drivers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Double-Grip Dwarves": {
-                    group: "Double-Grip Dwarves",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Fairway Faeries": {
-                    group: "Fairway Faeries",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Fairway Felons": {
-                    group: "Fairway Felons",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Fiends of Fairway": {
-                    group: "Fiends of Fairway",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Foxglove Flickers": {
-                    group: "Foxglove Flickers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Fun-Sized Force": {
-                    group: "Fun-Sized Force",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Garden Gate Gliders": {
-                    group: "Garden Gate Gliders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Gnomish Gentry": {
-                    group: "Gnomish Gentry",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Granite Gliders": {
-                    group: "Granite Gliders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Grass-Top Gliders": {
-                    group: "Grass-Top Gliders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Gravel-Pit Putters": {
-                    group: "Gravel-Pit Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Grip-Lock Goblins": {
-                    group: "Grip-Lock Goblins",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Ground-Level Grifters": {
-                    group: "Ground-Level Grifters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Half-Pint Phantoms": {
-                    group: "Half-Pint Phantoms",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "High-Speed Hobgoblins": {
-                    group: "High-Speed Hobgoblins",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Inch-High Imps": {
-                    group: "Inch-High Imps",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Knee-High Knockouts": {
-                    group: "Knee-High Knockouts",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Knee-High Knucklers": {
-                    group: "Knee-High Knucklers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Leaf Litter Legion": {
-                    group: "Leaf Litter Legion",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Little-League Legends": {
-                    group: "Little-League Legends",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Loft-Shot Lads": {
-                    group: "Loft-Shot Lads",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Low-Profile Pros": {
-                    group: "Low-Profile Pros",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Micro-Stature Marauders": {
-                    group: "Micro-Stature Marauders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Miniature Mountain-Men": {
-                    group: "Miniature Mountain-Men",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mithril Midrangers": {
-                    group: "Mithril Midrangers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mossy Midrangers": {
-                    group: "Mossy Midrangers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mound-Bound Marauders": {
-                    group: "Mound-Bound Marauders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Mycelium Marauders": {
-                    group: "Mycelium Marauders",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Noggin Gnomes": {
-                    group: "Noggin Gnomes",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Overstable Ogres": {
-                    group: "Overstable Ogres",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Pebble Pushers": {
-                    group: "Pebble Pushers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Petite-Power Players": {
-                    group: "Petite-Power Players",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Petunia Putters": {
-                    group: "Petunia Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Picket-Fence Putters": {
-                    group: "Picket-Fence Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Pint-Sized Putters": {
-                    group: "Pint-Sized Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Pipe Puffers": {
-                    group: "Pipe Puffers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Pocket-Sized Putters": {
-                    group: "Pocket-Sized Putters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Porch Sitters": {
-                    group: "Porch Sitters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Putter Prowlers": {
-                    group: "Putter Prowlers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Putter-Pocket Pranksters": {
-                    group: "Putter-Pocket Pranksters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Rose-Thorn Rollers": {
-                    group: "Rose-Thorn Rollers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Scramble Scoundrels": {
-                    group: "Scramble Scoundrels",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Shadow-Shortened Scoundrels": {
-                    group: "Shadow-Shortened Scoundrels",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Shank Shifters": {
-                    group: "Shank Shifters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Shin-Height Shufflers": {
-                    group: "Shin-Height Shufflers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Short-Range Sharpshooters": {
-                    group: "Short-Range Sharpshooters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Slightly-Small Saboteurs": {
-                    group: "Slightly-Small Saboteurs",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Small-Batch Boys": {
-                    group: "Small-Batch Boys",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Speckled Spores": {
-                    group: "Speckled Spores",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Spore Sprouts": {
-                    group: "Spore Sprouts",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Stump-Hitters": {
-                    group: "Stump-Hitters",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Tee-Box Terrors": {
-                    group: "Tee-Box Terrors",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Teeny-Tiny Titans": {
-                    group: "Teeny-Tiny Titans",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Ace Runners": {
-                    group: "The Ace Runners",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Chains Chasers": {
-                    group: "The Chains Chasers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Grass-Stain Gang": {
-                    group: "The Grass-Stain Gang",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Low-Down Dirty Dogs": {
-                    group: "The Low-Down Dirty Dogs",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Minuscule Misfits": {
-                    group: "The Minuscule Misfits",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Plastic Heavyweights": {
-                    group: "The Plastic Heavyweights",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Roller Rebels": {
-                    group: "The Roller Rebels",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "The Thicket Throwers": {
-                    group: "The Thicket Throwers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Tomahawk Trolls": {
-                    group: "Tomahawk Trolls",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Trellis Tossers": {
-                    group: "Trellis Tossers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Turbo-Putt Trolls": {
-                    group: "Turbo-Putt Trolls",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Turnover Trowels": {
-                    group: "Turnover Trowels",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Verticality Challenged": {
-                    group: "Verticality Challenged",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Wee-Folk Warriors": {
-                    group: "Wee-Folk Warriors",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Wheelbarrow Wingers": {
-                    group: "Wheelbarrow Wingers",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
-                "Windy Wizards": {
-                    group: "Windy Wizards",
-                    tourn: "LKNITP Disc Bash 2026",
-                },
+                "Anhyzer Anvils": { group: "1A" },
+                "Ankle-Biters Anonymous": { group: "1B" },
+                "Bark Biters": { group: "1C" },
+                "Basket Boggarts": { group: "1D" },
+                "Basket Breakers": { group: "2A" },
+                "Basket Breakers": { group: "2B" },
+                "Basket-Hanging Hoodlums": { group: "2C" },
+                "Birdie Bandits": { group: "2D" },
+                "Bonsai Brigade": { group: "3A" },
+                "Bramble Boys": { group: "3B" },
+                "Caddy-Cap Crusaders": { group: "3C" },
+                "Chain Bangers": { group: "3D" },
+                "Chain-Bang Chums": { group: "4A" },
+                "Cobblestone Kings": { group: "4B" },
+                "Compact Commandos": { group: "4C" },
+                "Dahlia Drivers": { group: "4D" },
+                "Double-Grip Dwarves": { group: "5A" },
+                "Fairway Faeries": { group: "5B" },
+                "Fairway Felons": { group: "5C" },
+                "Fiends of Fairway": { group: "5D" },
+                "Foxglove Flickers": { group: "6A" },
+                "Fun-Sized Force": { group: "6B" },
+                "Garden Gate Gliders": { group: "6C" },
+                "Gnomish Gentry": { group: "6D" },
+                "Granite Gliders": { group: "7A" },
+                "Grass-Top Gliders": { group: "7B" },
+                "Gravel-Pit Putters": { group: "7C" },
+                "Grip-Lock Goblins": { group: "7D" },
+                "Ground-Level Grifters": { group: "8A" },
+                "Half-Pint Phantoms": { group: "8B" },
+                "High-Speed Hobgoblins": { group: "8C" },
+                "Inch-High Imps": { group: "8D" },
+                "Knee-High Knockouts": { group: "9A" },
+                "Knee-High Knucklers": { group: "9B" },
+                "Leaf Litter Legion": { group: "9C" },
+                "Little-League Legends": { group: "9D" },
+                "Loft-Shot Lads": { group: "10A" },
+                "Low-Profile Pros": { group: "10B" },
+                "Micro-Stature Marauders": { group: "10C" },
+                "Miniature Mountain-Men": { group: "10D" },
+                "Mithril Midrangers": { group: "11A" },
+                "Mossy Midrangers": { group: "11B" },
+                "Mound-Bound Marauders": { group: "11C" },
+                "Mycelium Marauders": { group: "11D" },
+                "Noggin Gnomes": { group: "12A" },
+                "Overstable Ogres": { group: "12B" },
+                "Pebble Pushers": { group: "12C" },
+                "Petite-Power Players": { group: "12D" },
+                "Petunia Putters": { group: "13A" },
+                "Picket-Fence Putters": { group: "13B" },
+                "Pint-Sized Putters": { group: "13C" },
+                "Pipe Puffers": { group: "13D" },
+                "Pocket-Sized Putters": { group: "14A" },
+                "Porch Sitters": { group: "14B" },
+                "Putter Prowlers": { group: "14C" },
+                "Putter-Pocket Pranksters": { group: "14D" },
+                "Rose-Thorn Rollers": { group: "15A" },
+                "Scramble Scoundrels": { group: "15B" },
+                "Shadow-Shortened Scoundrels": { group: "15C" },
+                "Shank Shifters": { group: "15D" },
+                "Shin-Height Shufflers": { group: "16A" },
+                "Short-Range Sharpshooters": { group: "16B" },
+                "Slightly-Small Saboteurs": { group: "16C" },
+                "Small-Batch Boys": { group: "16D" },
+                "Speckled Spores": { group: "17A" },
+                "Spore Sprouts": { group: "17B" },
+                "Stump-Hitters": { group: "17C" },
+                "Tee-Box Terrors": { group: "17D" },
+                "Teeny-Tiny Titans": { group: "18A" },
+                "The Ace Runners": { group: "18B" },
+                "The Chains Chasers": { group: "18C" },
+                "The Grass-Stain Gang": { group: "18D" },
             };
 
             // ============================================================
@@ -1445,11 +1181,11 @@
             // ============================================================
             // STATE
             // ============================================================
-            //
+
             // Check if game_state_cache exists
             // create if not
             // use values otherwise (handles local data on player refresh or page exit)
-            //
+
             let S;
             game_state_cache = localStorage.getItem("game_state_cache");
 
@@ -1494,8 +1230,6 @@ from the beginning`,
                             "team-names-display",
                         ).textContent = S.p1 + " & " + S.p2;
 
-                        /// 5.12 referencing different part to clean up
-
                         hide("setup-screen");
                         show("scoring-screen");
                         buildProgress();
@@ -1505,7 +1239,6 @@ from the beginning`,
                         //5.7 adding so refresh triggers update if necessary
                         updateNavBtns();
                         getHoleSponsorImage(S.currentHole);
-                        // 5.4 retries on refresh, hopefully not on dry start
                         processQueue();
                     }
                 }
@@ -1531,11 +1264,7 @@ from the beginning`,
                     // Valid token — pre-fill and lock group fields
                     S.token = token;
 
-                    // 5.13 reference constant to remove excessive 'tourn'
-                    // values in group_tokens dict
-                    //
                     document.getElementById("tourn-name").value = tourn_name;
-                    // 5.13 changign reference to token, not group.group
                     document.getElementById(
                         "group-locked-display",
                     ).textContent = token;
@@ -1548,14 +1277,12 @@ from the beginning`,
                         "none";
                     document.getElementById("locked-banner").style.display =
                         "flex";
-                    // 5.13 changing reference to token not group.gorup
                     document.getElementById("locked-group-name").textContent =
                         token;
 
                     show("setup-screen");
                 }
-                // 5.1. hoping this line will retry on refresh
-                console.log("running processqueue from window.onload");
+                // console.log("running processqueue from window.onload");
                 processQueue();
             });
 
@@ -1584,10 +1311,10 @@ from the beginning`,
                 // 5.13 startup functionality to start players on a specific hole, preassigned with names
                 // this assumes a group naming convention of _#_, where first char is eliminated
                 // and the remaining characters are cast as an integer
-                //
+                // 5.14 Corrected, get rid of the last letter instead
                 hole_preset_str = group["group"];
                 hole_preset_str = hole_preset_str.slice(
-                    1,
+                    0,
                     hole_preset_str.length,
                 );
                 hole_preset_num = parseInt(hole_preset_str, 10) - 1; // returns an int or NaN
@@ -1624,6 +1351,7 @@ from the beginning`,
                 buildMini();
                 renderHole();
                 getHoleSponsorImage(S.currentHole);
+                window.scrollTo(0, 0);
             }
 
             // ============================================================
@@ -1670,14 +1398,13 @@ from the beginning`,
             // HOLE SPONSOR LOGO
             // ============================================================
 
-            // hole is the
             function getHoleSponsorImage(hole) {
                 hole_sponsor_map = hole_sponsor_map = {
-                    0: "https://static.wixstatic.com/media/78f398_b25cda3dbd1145c79360bdb48122075f~mv2.png/v1/fit/w_250,h_150,al_c/image.png", // "Tenable",
+                    0: "https://static.wixstatic.com/media/78f398_b25cda3dbd1145c79360bdb48122075f~mv2.png/v1/fit/w_250,h_150,al_c/image.png", // "Tenable", fit to scale well
                     1: "https://static.wixstatic.com/media/78f398_4c442786473043be82b14bb64bb44c0a~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "CNP Technologies"
                     2: "https://static.wixstatic.com/media/78f398_a5710c94a7244113a92d906ac4d7b9d3~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "COLORTOKENS',
                     3: "https://static.wixstatic.com/media/78f398_1f8e7d4a19794692967a589fca43b525~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Trace3",
-                    4: "", // "OneCloud",
+                    4: "https://static.wixstatic.com/media/78f398_6dffddefe472434ebe01d8111fa82f14~mv2.png/v1/fit/w_250,h_150,al_c/image.png", // "OneCloud", fit to scale well
                     5: "https://static.wixstatic.com/media/78f398_213a9c2637ee46a589ba2f338362da7a~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Check Point",
                     6: "https://static.wixstatic.com/media/78f398_54283e1aec7c4a68851573fb7ff1c813~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Cribl",
                     7: "https://static.wixstatic.com/media/78f398_4683e1e5d48d42c49963596956729963~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "Flexential",
@@ -1692,9 +1419,9 @@ from the beginning`,
                     16: "https://static.wixstatic.com/media/78f398_ab67887363324b0ebcd1694c8abc44a1~mv2.png/v1/fill/w_250,h_150,al_c/image.png", //"Lowe's",
                     17: "https://static.wixstatic.com/media/78f398_f9a49f3b30f4402899c5b2223a03d171~mv2.png/v1/fill/w_250,h_150,al_c/image.png", // "TekSystems",
                 };
+
                 document.getElementById("header-logo-id").src =
                     hole_sponsor_map[hole];
-                // 5.12 change wrpaper to get right size?
                 document
                     .getElementById("header-logo-wrapper")
                     .classList.replace(
@@ -1781,12 +1508,14 @@ from the beginning`,
                 if (S.submitted[S.currentHole] === true) {
                     btn.textContent = "\u2713 Hole " + h.n + " Submitted";
                     btn.classList.add("submitted");
+                    btn.classList.remove("pending");
                 } else if (S.submitted[S.currentHole] == "pending") {
                     btn.textContent = "\u2713 Hole " + h.n + " Pending";
                     btn.classList.add("pending");
+                    btn.classList.remove("submitted");
                 } else {
                     btn.textContent = "Submit Hole " + h.n;
-                    btn.classList.remove("submitted");
+                    btn.classList.remove("submitted", "pending");
                 }
                 btn.disabled = false;
                 renderTotals();
@@ -1887,10 +1616,9 @@ from the beginning`,
                 }
                 //
 
-                //4.30 I think pending submit / save goes here
                 S.submitted[idx] = "pending";
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
-                //4.30   goes here
+
                 setStatus("sending", "Sending...");
                 btn.disabled = true;
                 const payload = {
@@ -1915,7 +1643,7 @@ from the beginning`,
                 btn.textContent = "\u2713 Hole " + h.n + " Submitted";
                 btn.classList.add("submitted");
                 btn.disabled = false;
-                // 5.7 tinkering with styles on various statuses
+
                 setStatus(
                     ok ? "online" : "savedLocally",
                     ok ? "Scores sent" : "Saved locally",
@@ -1929,9 +1657,7 @@ from the beginning`,
                 updateMini();
 
                 // wait so user can see the visual changes
-                // 5.5 CHANGE TO PREVENT 'lockout' after 18
-                // Need to 'lockout' after all submitted
-                //
+
                 // 5.7 changing checks in this setTimeout
                 setTimeout(() => {
                     nextHole();
@@ -1946,10 +1672,6 @@ from the beginning`,
             // NAVIGATION
             // ============================================================
 
-            // 5.5 TODO
-            // FIX SO IT DOESNT 'lcokout' AFTER 18
-            // lockout ONLY WHEN ALL SUBMITTED
-            //
             // 5.7 adding looparound capability
             function nextHole() {
                 // loop back to 1 on last hole, else increment by one
@@ -1958,7 +1680,7 @@ from the beginning`,
                 } else {
                     S.currentHole++;
                 }
-                //5.7 necessary?
+
                 localStorage.setItem("game_state_cache", JSON.stringify(S));
                 // render with updated S.currentHole to display next hole
                 renderHole();
@@ -2165,13 +1887,14 @@ from the beginning`,
                     VsPar: S.scores[idx] - h.par,
                     Timestamp: new Date().toISOString(),
                 };
+                /*
                 let my_options = {
                     method: "POST",
                     mode: "no-cors",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
                 };
-
+                */
                 my_options = {
                     method: "POST",
                     mode: "cors",
@@ -2207,18 +1930,19 @@ from the beginning`,
 
                             // if..else handle case where navigation to new game happens
                             // and element doesn't exist
+
                             dot_exists = document.getElementById("dot-" + i);
                             if (dot_exists) {
                                 document.getElementById("dot-" + i).className =
                                     "prog-dot done";
                             }
-                            //5.7 changing to reflect hole completed
 
                             await new Promise((resolve) => {
                                 setStatus(
                                     "online",
                                     `Sync Hole ${i + 1} complete`,
                                 );
+                                renderHole();
                                 setTimeout(() => {
                                     resolve();
                                 }, 1000);

@@ -105,8 +105,35 @@ function setupSheet(ss, name, headers, bgColor, fgColor) {
 // ============================================================
 // WRITE SCORE — deduplicate by group + hole
 // ============================================================
+
+
+  // test
+  function mockFunction(){
+  let r = SpreadsheetApp.getActiveSpreadsheet()
+  let s = {
+  "Tournament": "javascript: alert(1)",
+  "Group": "1A",
+  "Token": "<img src=x onerror=alert(\'Token\')>",
+  "Players": "<img src=x onerror=alert(\'Players\')>",
+  "Hole": 18,
+  "Par": 5,
+  "Score": 3,
+  "Dist": 200,
+  "VsPar": '-1000000',
+  "Timestamp": "2026-05-14T20:37:52.641Z"
+  }
+  return writeScore(r,s)
+}
+
+
+
+// test data
+
+
 function writeScore(ss, data) {
-  const sheet = ss.getSheetByName(SHEET_SCORES);
+
+  //
+    const sheet = ss.getSheetByName(SHEET_SCORES);
 
   // Delete any existing entry for this group + hole
   // 5.4 Thinking data.group needs to be data.Groups to have deleting effect
@@ -122,19 +149,43 @@ function writeScore(ss, data) {
     }
   }
   */
+
+    // 5.14 TODONOW
+    // 5.14 whitelist input to mitigate leaderboard XSS, formula injection in sheets
+    // token gets matched before it gets here
+    // Allow letters, numbers, and space (no tabs): /[a-zA-Z0-9 ]/
+
+
+
+
+let my_data = {
+
+"Tournament": /^[A-Za-z0-9 ]+$/.test(data.Tournament)? data.Tournament : null, // !!! only allow A-Z 0-9 whitespace
+"Group": /^[0-9]+[A-Z]$/.test(data.Group) ? data.Group : null, // "1A"
+"Token": data.Token, // Verified previous steps "Anhyzer Anvils"
+"Players": /^[A-Za-z0-9 ]+$/.test(data.Players) ? data.Players : null, // "<img src=x onerror=alert('XSS')>" only allow whitespace and alphanumeric characters
+"Hole": /^\d+$/.test(data.Hole) ? data.Hole : null, // 1,
+"Par": /^\d+$/.test(data.Par) ? data.Par : null, // 3,
+"Dist": /^\d+$/.test(data.Dist) ? data.Dist : null, //276,
+"Score": /^\d+$/.test(data.Score) ? data.Score : null, //3,
+"VsPar": /^[0-9-]+$/.test(data.VsPar) ? data.VsPar : null, //0,
+"Timestamp": !isNaN(Date.parse(data.Timestamp)) ? data.Timestamp : null // ;"2026-05-14T20:37:52.641Z"
+
+}
+
   // Append new score
   // timestamp here reflects when it hits the server, not when frontend sent submission
   sheet.appendRow([
     new Date().toISOString(),
-    data.Tournament,
-    data.Group,
-    data.Players,
-    data.Hole,
-    data.Par,
-    data.Dist,
-    data.Score,
-    data.VsPar,
-    data.Token
+    my_data.Tournament,
+    my_data.Group,
+    my_data.Players,
+    my_data.Hole,
+    my_data.Par,
+    my_data.Dist,
+    my_data.Score,
+    my_data.VsPar,
+    my_data.Token
   ]);
 
   // colorVsParColumn(sheet);
@@ -302,7 +353,7 @@ function populateGroupTokens() {
 
   SpreadsheetApp.getUi().alert(
     'Group URLs generated!\n\n' +
-    'Check the "Group Tokens" tab for all 18 scoring URLs.\n' +
+    `Check the "Group Tokens" tab for all ${tokens.length} scoring URLs.\n` +
     'Text or QR-code the URL in column C to each group captain.'
   );
 }
