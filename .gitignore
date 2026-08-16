@@ -1,2 +1,5 @@
 # Local Netlify folder
 .netlify
+.env
+node_modules/
+app_files_for_netlify/node_modules/
