@@ -1,0 +1,184 @@
+In 3 weeks, I delivered direct brand visibility for sponsors at a prominent IT professionals event by developing a scoring / leaderboard application with zero infrastructure overhead.
+
+The Stack:  
+      Claude (not quite what you think)
+      JS
+      Netlify
+      Wix
+      Google AppScript
+
+The Context: 
+
+   Lake Norman IT Professionals is one of several IT organizations serving Charlotte, NC and the surrounding area. They host a disc golf tournament every year, a venue that brings in over 200 people and 20+ company sponsors. 
+   
+   One of the key problems faced every year is attracting sponsorship. Why should a company attend, let alone contribute money to the event? 
+
+   Depending on your approach, there are several reasons that immediately make sense: 
+
+- Time to develop a personal network of experts and peers for making life decisions
+- Demonstrated business presence to serve the community
+- Time to identify and develop business relationships with other IT leaders and organizations
+- The sheer enjoyment of the disc golf sport
+- Time to identify new customers in a low-risk setting
+- Time to advertise and bring awareness of your business to the community
+
+  Among several new strategies this year, I was asked to develop a scoring application for the tournament players to use. This achieves several wins immediately: 
+
+- Improved perception of professionalism and competence (an IT event should be keeping score electronically)
+- Improved player experience (carrying around paper and pencil is outdated and prone to issues - water, damage, loss)
+- Sponsor presence in front of disc golf players (they will consult and pay attention to the score card as part of game play, not necessarily tables)
+
+  In the long run, the app serves as the foundation to 
+- Attract more sponsors, players, and spectators
+- Have an ongoing development project(s), which is an excellent way for new IT professionals to get involved
+- Highlight the importance of automation and security in modern event planning
+- Encourage keeping an auditable electronic record of event planning
+
+
+ 
+Week 1
+
+  I was given an instruction manual written by Claude and a brief discussion explaining the desired requirements and architecture of the app. I took a fast read to get a gist of the idea, and a close read afterwards to truly understand what was being suggested. 
+
+  The proposed design was a website that sends data to Airtable and to Google Sheets. Airtable was cited to have 'dashboard' capabilities that would allow it to serve as a leaderboard for the tournament. Sheets acted as an auditing tool to verify results in Airtable were accurate. 
+
+  Teams were assigned a specific URL param (read: unique QR code) that they would use throughout the day. 
+
+  Without knowing much about these services, the concept seems reasonable. Ideally, an application like this would have an authentication mechanism to prevent teams from hijacking each others' scores, in addition to an actual database instance. But given the time constraints and the nature of the event being more casual, this idea seems reasonable. 
+
+  What was interesting is what was not demonstrated in the drafted HTML/JS and AppScript files: 
+ 
+       - No concept of asynchronous data submission
+       - No concept of retry mechanisms for data submission during network failure
+       - No concept of middleware (API tokens for Airtable were hard-coded in the front-end)
+       - No concept of password management
+       - No concept of cleaning data before POST submission
+       - No concept of logic that keeps players from fucking up each others scores, or making other 'mistakes' using the application	
+       ... 
+
+  The HTML draft was a good visual 'check' on styling and layout, and this remained fairly constant throughout the project. There were some interesting styling challenges that occurred later. 
+
+  I spent the first two days setting up a throwaway account for this project, researching and setting up Netlify, Airtable and AppScript services/permissions, and connecting everything to the front end via GET/POST requests. This built the foundation for further testing and functionality in an isolated account. 
+
+  Since this was supposed to be implemented as cost-effective as possible, many of the typical tools at my disposal - like a secrets manager or a database instance - were unreachable behind a paywall. Plus, Netlify has rules about credit usage every month, which required a deep dive to understand the standards against what traffic / usage I expected at the event. 
+
+  I explored Netlify serverless functions as a solution to the hard-coded API key. Essentially, you use the serverless function to inject the sensitive token. Since this function lives on Netlify's protected servers, and only runs when a request is initiated, it is more secure than the original proposal. 
+
+Week 2
+
+    The main architecture headache during the second week was realizing that Airtable was not going to serve as an effective dashboard. 
+
+    A new requirement surfaced after a discussion at the beginning of the week. We needed to include sponsor logos on the dashboard. Since Airtable doesn't support the HTML/CSS necessary to do this right, I needed a plan B. 
+
+    As it happens, Google AppScript provides the functionality I needed - take data stored in Sheets and inject that data into an HTML page.  
+
+    So I rewrote the code for that to work properly (which amounted to adding a few functions and tweaking a few others), while troubleshooting some issues with the existing code along the way.
+
+
+    In addition to writing the changes to make data submission asynchronous and robust to network outages, I tested the implementation by writing a Python script to send burst traffic to my application. The idea was to see what % of submissions dropped, and how successful retry mechanisms were at sending data after initial failure.  
+
+    Serving images was another interesting problem. Netlify would charge for retrieving images hosted on their platform, so I opted to host images on Wix (free). It took some trial and error to get the sizing and format right to be presentable and consistent. 
+
+    My biggest issue is consistently syntax related. I generally understand what I want the code to do, but because I write in so many languages, keeping up with the formatting is difficult. If I memorized syntax, I'd cut down production time by 20%. 
+
+    With the advent of AI, I have an easy way to learn/find the correct syntax and understand the patterns and principles behind it. It's a lot faster to read a prompt explanation than to find the documentation and examples of your peers. 
+
+    I have found it helpful in my development to keep a text file that tracks all the problems I need to deal with, and all the problems I have solved. It looks something like: 
+
+
+#TODO.txt
+
+
+first problem
+       some scratch work for implementing it later
+second problem
+third problem
+
+----
+
+fixed problem
+another fixed problem
+    what I ended up doing and info that would be helpful for later investigation
+
+
+
+Week 3. 
+
+    The critical presentation time was near. By now the app looked 95% of the way I wanted it to. I had filmed a proof-of-concept demonstrating the basic functionality of the scoring app, Sheets, and leaderboard. This went over well with the stakeholders. The key was keeping the explanation very simple and focusing on what the app showed rather than how it worked internally. 
+
+   This was followed by a more technical QA presentation. Feedback was positive overall, with some concerns about font sizing being the primary critique. 
+
+   After making one or two style changes and bug fixes, I started my favorite part of development: pentesting. 
+
+   Turns out it was necessary, as I had to implement a whitelist for alphanumeric characters in my data payload to prevent XSS on the leaderboard and formula injection in Google sheets. It didn't cost much in terms of speed to implement this check. It was critical to avoid an embarrassing defacement by a bored security vendor.
+
+   I published an event-ready application at the end of this week. This gives me enough time to make an emergency patch or update before the event, without having to worry about fundamental functionality.  
+
+
+Week 4. 
+
+   I wasn't sure if I would attend the tournament myself when I started. In principle, I wanted to see how the event looked, and get feedback from people as they were experiencing it. I had already been asking around about previous experiences. 
+
+   My hope was to be working for someone in Charlotte and be unable to attend due to 'work'. 
+
+   But I did attend, and here's what happened: 
+
+
+
+Post-Mortem: 
+
+   The app successfully served its purpose this year. Players were able to submit scores successfully, and corrections that needed to be made were logged and rectified without issue. 
+
+That said, there's a lot left to be desired for long-term use of this application. 
+
+   Ultimately, a successful application needs to be adaptable for the course the event is hosted at, in addition to other aspects (like players per team). Data needs to be stored for the respective courses, number of players, etc. and pulled automatically. 
+
+   The app should have a page that shows real-time location on a map of the course. A page with rules would be good to have as well. 
+
+   Sponsor logos could be linked to their respective websites.
+
+  At the scale of this event, the app handled traffic well. I suspect for much larger events, we would expect to hit the ceiling on Netlify (and perhaps Google) usage credits. Even with extreme optimization of the code, the only way around this is to use a different stack. 
+
+   There's room to improve CI/CD and security in this application. I wrote tests for important aspects of the application, and manually walked through the cases I could think of, but this should be automated and written in a formal test suite for long-term maintenance. I tested for common security issues and implemented many basic security best-practices. There may be more advanced exploits that I overlooked in the month I had. 
+
+  The app needs mechanisms to identify how users are interacting with the app in order to inform our UI discussions. 
+
+  Some more specific documentation on data structure for POST requests is needed. I spent an hour identifying an issue that ended up being an inconsistency in capitalization of a data attribute between the frontend and backend.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+Continuous Improvement
+While Version 1.0 successfully delivered immediate business and operational value, scaling this application for larger events or permanent deployment introduces new engineering objectives:
+
+1. Dynamic Course Configuration
+The layout, hole counts, par values, and team parameters are currently hardcoded into the initial build. Version 2.0 will introduce an administrative highly-configurable dashboard allowing non-technical event coordinators to instantiate new course geometries dynamically.
+
+2. User Interaction Analytics
+To optimize the real estate layout for sponsors, future iterations require anonymous event tracking (such as click-through rates and viewport visibility durations) to give organizers concrete metrics to hand back to corporate sponsors.
+
+3. Automated Test Suites & CI/CD
+To hand the project off smoothly to emerging IT professionals looking for open-source development experience, the manual verification processes must be replaced with automated testing frameworks integrated directly into a production-ready CI/CD pipeline.
+
+4. Improved Authentication
+Switching from unique QR codes to managed accounts is a significant architectural ask, but worth the effort for long-term scalability. 
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,71 @@
+<head>
+    <style>
+        .vendor-slider {
+            overflow: hidden; /* Hides the logos outside the container */
+            background: white;
+            padding: 40px 0;
+            width: 100%;
+        }
+
+        .vendor-track {
+            display: flex;
+            width: calc(250px * 6); /* (Slide Width * Number of Total Slides) */
+            animation: scroll 40s linear infinite;
+        }
+
+        .slide {
+            width: 250px; /* Consistent width for each vendor */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        .slide img {
+            max-width: 100%;
+            filter: grayscale(
+                100%
+            ); /* Optional: matches the "professional" look */
+            transition: 0.3s;
+        }
+
+        .slide img:hover {
+            filter: grayscale(0%); /* Color on hover */
+        }
+
+        /* The Magic: Moves the track by half its total width */
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(-250px * 3));
+            } /* Negative (Slide Width * Original Number of Slides) */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="vendor-slider">
+        <div class="vendor-track">
+            <div class="slide">
+                <img src="alt_favicon.jpg" alt="Vendor 1" />
+            </div>
+            <div class="slide">
+                <img src="alt_favicon.jpg" alt="Vendor 2" />
+            </div>
+            <div class="slide">
+                <img src="alt_favicon.jpg" alt="Vendor 3" />
+            </div>
+            <div class="slide">
+                <img src="alt_favicon.jpg" alt="Vendor 1" />
+            </div>
+            <div class="slide">
+                <img src="alt_favicon.jpg" alt="Vendor 2" />
+            </div>
+            <div class="slide">
+                <img src="alt_favicon.jpg" alt="Vendor 3" />
+            </div>
+        </div>
+    </div>
+</body>

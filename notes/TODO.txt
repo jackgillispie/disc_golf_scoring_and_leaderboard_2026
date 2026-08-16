@@ -1,0 +1,151 @@
+TODO
+----
+
+ADD FORCE RETRY ON FINAL SUBMISSION
+  Can be an error screen prompting resubmission
+
+- implementvsColor on the column, NOT by row, during updates
+- audit network usage of the application?
+-Clickable  minDropdown to select hole to move to
+
+
+DONE
+
+
+Larger font size
+Put sponsor logo on each hole
+Print out QR codes in groups of 4, one group of 4 per each hole  key-value pair dict for hole: team, or codified naming (hole1teama) will help to reference
+Prevent moving on to next hole
+
+Assign tokens so their respective default hole number changes UI on startup
+
+Start people on the correct hole with a given URL (pre-determined key-value assn)
+
+
+FIX STICKY TOKEN in LOCALSTORAGE (made a warning to clear data, clears data if new round started)
+    i.e. if they scan the wrong url and start play, need
+    to switch over w/o attributing scores incorrectly
+
+Make QR codes generation automatic function and formatted to make it easy to print
+
+prettify URL to dashboard somehow  https://tinyurl.com/disc-golf-leaderboard
+
+resending seems to break when going to new card, but UI is showing up
+    b/c prog dot doesn't exist, assigning className + other properties hangs on an error
+
+                <div class="vendor-track">
+                    <div class="slide">
+                        <img
+                            decoding="async"
+                            src="https://drive.google.com/thumbnail?id=1Txn_lJjPoqrsc4oYXtfat1REtlYzrQLd"
+                            alt="Vendor 1"
+                        />
+                    </div>
+</div>
+</div>
+
+
+WHEN SUBMITTED ON 18 YOU GET TO END MENU
+MUST CHANGE THIS TO PREVENT IT FROM HAPPENING @ GAME
+
+Auto dashboard refresh
+
+write an expected behavior / execution flow
+page for future development
+
+A WAY TO GIVE USERS PAST DATA
+IF A DEVICE FAILS & NEW ONE IS USED (they can continue to submit new scores from the same url, regardless of if they mess up their team members)
+
+// 5.4 appears to change players names for team ONLY when a new hole is pushed
+// hole score does not seem to get updated here
+// effectively changing players midway breaks intended purpose
+// only if a hole submission is for a unique hole does it affect the ranking calculation
+// need a way to resubmit the same hole and update the results
+
+Desired behavior
+   anyone who scans the right QR code can continue to add new holes without an issue
+        fix the above behavior?
+   Don't overwrite unless submitted on that phone
+
+Logos for sponsors hosted on a public repository (use Drive trick -- not working, use Wix)
+
+- Stress test w/ python script for burst request/volume behavior
+-Gnome themed group names
+
+Wraparound navigation (i.e. no submit on 18, submit on all holes pending +)
+
+Gnome themed group names
+
+
+
+- Data structure storing Valid group token is not the same on frontend vs backend
+
+
+
+- will uncommitted changes carry over when switchign branches
+
+
+- Make button UI clear it can be pressed repeatedly on submission?
+
+- Get animation on syncing in background button
+
+- if i go back in browser, the urlparams are not preserved
+
+     Check expected behavior to handle immediate resubmissions of same hole?
+- Check top UI is consistent / indicates pending vs submitted status + current hole
+- Wraparound navigation (i.e. no submit on 18, submit on all holes pending +)
+- Leaderboard showing team names
+- Way s to include advertising/sponsorship on dashboard
+---
+
+Separate page with rules / Maps
+
+nload
+vmstat <# interval> <#total intervals>
+
+
+besthole trophy competiton
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Notes:
+
+right now the token in S and cache remains unchanged when you shift - it keeps the old token
+   is this desired behavior? or should we allow flexibility when initial choice is incorrect at the risk of navigating to the wrong one later
+
+currenthole doesn't change when we navigate to another hole (no submission) - desired behavior or not?
+
+synchronize allowed tokens/group names vs manual config
+Automate QR code creation
+batch submits vs individual holes?
+Address the above concerns
+
+Delete C:/Python311/sample.py
+Write about the netlifiy setup  (link, then netlify dev, then ensuring paths are correct when testing)
+
+
+Ace = 1 shot
+albatross = par -3
+eagle = par -2
+birdie = par -1
+bogey = par + 1
+double bogey = par + 2
+triple bogey = par + 3
+snowman = 8
+--
+Cards for IT work
+adv it work while doing balloon art?
+
+https://udisc.com/courses/bracketts-bluff-eqvG/v2/layouts/46267

@@ -1,0 +1,436 @@
+<!doctype html>
+<html>
+    <head>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+
+            body {
+                font-family: "Inter", sans-serif;
+                background-color: #f4f4f9;
+                background-image: url("https://static.wixstatic.com/media/78f398_a234c126e61e4567a135a8e5ed33ef1a~mv2.jpg");
+                background-size: cover;
+                // object-fit: fill;
+                background-repeat: no-repeat;
+                display: flex;
+                justify-content: center;
+                padding: 40px 20px;
+            }
+            .container {
+                width: 100%;
+                max-width: 600px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+                padding: 30px;
+            }
+            h1 {
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: -1px;
+                margin-bottom: 30px;
+                text-align: center;
+            }
+            .row {
+                display: flex;
+                justify-content: space-between;
+                padding: 15px 10px;
+                border-bottom: 1px solid #eee;
+                font-size: 1.1rem;
+            }
+            .row:last-child {
+                border-bottom: none;
+            }
+            .rank {
+                font-weight: 700;
+                color: #666;
+                width: 70px;
+            }
+            .name {
+                flex-grow: 1;
+                font-weight: 700;
+            }
+            .score {
+                font-weight: 900;
+                color: #2d3436;
+            }
+
+            // style for carousel banner
+
+            .vendor-slider {
+                position: relative;
+                z-index: 0;
+
+                /* Existing styles */
+                overflow: hidden;
+                background: white;
+                width: 100%;
+            }
+
+            .vendor-slider {
+                overflow: hidden; /* Hides the logos outside the container */
+                background: white;
+                padding: 40px 0;
+                width: 100%;
+            }
+
+            .vendor-track {
+                display: flex;
+                width: calc(
+                    250px * 6
+                ); /* (Slide Width * Number of Total Slides) */
+                animation: scroll 40s linear infinite;
+                will-change: transform;
+            }
+
+            .slide {
+                width: 250px; /* Consistent width for each vendor */
+                display: flex;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                // padding: 0px 5px;
+                margin: 10px 15px;
+            }
+
+            .slide img {
+                max-width: 100%;
+                height: 100%;
+                object-fit: contain;
+                // filter: grayscale(
+                //     100%
+                // ); /* Optional: matches the "professional" look */
+                // transition: 0.3s;
+            }
+
+            .slide img:hover {
+                filter: grayscale(0%); /* Color on hover */
+            }
+
+            /* The Magic: Moves the track by half its total width */
+            @keyframes scroll {
+                0% {
+                    // transform: translateX(-5%);
+                    transform: translateX(0%);
+                }
+                100% {
+                    //transform: translateX(calc(-250px * 3));
+                    // transform: translateX(-505);
+                    transform: translateX(-616%);
+                } /* Negative (Slide Width * Original Number of Slides) */
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="vendor-slider">
+                <div class="vendor-track">
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_2ffda7a5b1ee43819867ac075fa93468~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 1"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_1f8e7d4a19794692967a589fca43b525~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 2"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_f9a49f3b30f4402899c5b2223a03d171~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 3"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_66058a0f5be648739d8edf91ee5ca85e~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 4"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_ab67887363324b0ebcd1694c8abc44a1~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 5"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_1b434678bfb94526a5f5b559e1d0b2b6~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 6"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_3b4e02280afd4bbb815c608fb26fb62c~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 7"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_77cdc640d046499ba11aea67069a1852~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 8"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_4683e1e5d48d42c49963596956729963~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 9"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_300e416d234946118926550348197ede~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 10"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_6d078686b41043678dfdd654e4fd7ed6~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 11"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_fc0dc56893b64a1395ba159236df28ad~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 12"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_54283e1aec7c4a68851573fb7ff1c813~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 13"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_b92f5681ec3c493ca9f22868041d6b6a~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 14"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_4c442786473043be82b14bb64bb44c0a~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 15"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_213a9c2637ee46a589ba2f338362da7a~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 16"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_77f8d0c595cd48ecbfe5d52b6a23daa2~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 17"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_a5710c94a7244113a92d906ac4d7b9d3~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 18"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_81d1518868a54257bb1eab511858cf82~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 19"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_c1ad8518a54e4499b6c0a8e24069239d~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 20"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_1b97d0d427794cc9bb07352c3ed4b0f3~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 21"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_fbb6bfe3dfb44dd59a0a54b40e919877~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 22"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_f1947411d692402a8d3dae9f6ad8111c~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 23"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_a640b71c52be47839c331011ec6cd3c7~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 24"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_4e50effbfb1a4942ac58c627012688e8~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 25"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_34806ccbb12143a2939e88bbf4f738c2~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 26"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_a72ef4675a1b4917b78d914b668fc5e0~mv2.png/v1/fit/w_250,h_150,al_c/image.png"
+    alt="Vendor 27"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_f36e02294a814298a92a45a5e992e01a~mv2.png/v1/fit/w_250,h_150,al_c/image.png"
+    alt="TechCXO"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_b2a76e7f4bdf42b1b42380c0998d2746~mv2.png/v1/fit/w_250,h_150,al_c/image.png"
+    alt="ISACA Charlotte"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_37175fa048724bffbd57ec8ee36219d5~mv2.jpg/v1/fit/w_250,h_150,al_c/image.png"
+    alt="OKTA"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_71f205d6f42e44fab786816f0c319ebb~mv2.jpg/v1/fit/w_250,h_150,al_c/image.png"
+    alt="Womens Tech Alliance Charlotte"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_e66d258aab784803a9779b88824db453~mv2.png/v1/fit/w_250,h_150,al_c/image.png"
+    alt="UNC Charlotte"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_6dffddefe472434ebe01d8111fa82f14~mv2.png/v1/fit/w_250,h_150,al_c/image.png"
+    alt="OneCloud"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_2ffda7a5b1ee43819867ac075fa93468~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 1"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_1f8e7d4a19794692967a589fca43b525~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 2"
+    />
+</div>
+<div class="slide">
+    <img
+    decoding="async" width="250px" height="150px" loading="lazy"
+    src="https://static.wixstatic.com/media/78f398_f9a49f3b30f4402899c5b2223a03d171~mv2.png/v1/fill/w_250,h_150,al_c/image.png"
+    alt="Vendor 3"
+    />
+</div>
+
+            </div>
+
+            <h1>Top Performers</h1>
+            <div id="board">Loading rankings...</div>
+        </div>
+
+        <script>
+            // Automatically load data on page load
+            window.onload = function () {
+                google.script.run
+                    .withSuccessHandler(drawTable)
+                    .getLeaderboardData();
+                // checks score every minute
+                setInterval(function () {
+                    google.script.run
+                        .withSuccessHandler(drawTable)
+                        .getLeaderboardData();
+                }, 60000);
+                // google.script.run.withFailureHandler().onFailure();
+            };
+
+            function drawTable(data) {
+                if (!data || data.length === 0) {
+                    document.getElementById("board").innerHTML =
+                        "No data found.";
+                    return;
+                }
+
+                let html = `
+                <div class="row">
+                <span class="rank">Rank</span>
+                <span class="name">Names</span>
+                <span class="score">Score</span>
+                </div>`;
+
+                data.forEach((row, index) => {
+                    html += `
+                <div class="row">
+                <span class="rank">#${row[0]}</span>
+                <span class="name">${row[1]}</span>
+                <span class="score">${row[2]}</span>
+                </div>`;
+                });
+                document.getElementById("board").innerHTML = html;
+
+                // color 1st, second, and withFailureHandler
+                top_three = document.getElementsByClassName("row");
+                top_three[1].style.background = "#FFD700";
+                top_three[2].style.background = "#FF1493";
+                top_three[3].style.background = "#0077BE";
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,24 @@
+Notes for improvement: 
+
+
+
+Frontend
+    Keep everything present on the screen w/o needing to scroll
+    Just press a 'next' button that guides through instead of giving user options to disregard other buttons
+    
+
+
+Backend
+
+
+
+TD Utilities
+     Clearer UI and auditing utility (e.g. incorporate OCR, matrix of # holes completed by each team)
+     Batch updates (it's tedious to enter in corrections one-by-one)
+
+
+Event notes
+    Registration + QR assignment was confusing for some players, who didn't understand the idea of 2 people per QR. 
+    Random assn. w/o QR assigning presence was an additional layer of difficulty
+    Stand-alone hotspot / internet (needs to not go out @ 4p)
+    Configure casting device/laptop to stay on when closed

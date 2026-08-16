@@ -1,0 +1,89 @@
+
+Desired Requirements
+--------------------
+
+each team should have a 'pin' to 'authenticate'
+each hole has its own submission form
+login and scoring per hole should be accessible on the phone
+have a dashboard acting as a live leaderboard
+
+
+STATIC REVIEW NOTES
+-------------------
+General Design Concerns:
+Despite the config variables, URLs to Airtable and AppScript are not used
+Front end needs a default page view that is not "invalid link"
+Does Front End validate submission values?
+(less critical) alternative auth , as arbitrary user can go to anothers' url
+No clear visual change on the card when submitting par, occurs after next non-par subission
+
+
+Result state does not persist on refresh
+
+JS file looks like GROUP_TOKENS are manually copy/pasted prior to execution
+JS file : token set to params.get(), which is arbitrary input
+JS file: is textContent a sink?
+
+Netlify:
+I don't like tokens in front-ends JS - need to pass these securely
+Need to upgrade to used the Team Settings -> Environment variables
+
+TIME SPENT
+
+4/21 - 4 hours performing static review, basic config of services, identified points for concern
+4/22 - 3 hours looking into authentication / security concerns, minor front-end troubleshooting (e.g. arrow rendering)
+     - 10 minutes fixing reach to the airtable
+     - 2-3 hours not getting anywhere creating a dev environment for Netlify functinos (js wasn't working, turns out it was a syntax error by commenting incorrectly with ##)
+     - 2 hours debugging on another account to find syntax errors / problems connecting to airtable from the middleware (continues to add blank line entries, but python request to same endpoint / auth token works)
+4/23-5/4 6-8 hr days debugging, looking into infrastructure changes, dealing w/ syntax headaches
+5/5 - 5/15 5-7 hr days performing incremental testing, getting user feedback, implementing security mechanisms
+5/16 published acceptable live product
+
+What happens when accidental submits at the end occur?
+Fast Double tap on mobile zooms in - can we block this?
+When a hole is submitted, the submit button stays showing complete (doesn't change back). Can still resubmit by clicking though
+eagle the right term for an ace?
+
+
+S is where state is getting saved
+
+game_state_cache is the localStorage of updated
+
+consider (maybe) implementing edge functions to block crawlers
+https://developers.netlify.com/guides/blocking-ai-bots-and-controlling-crawlers/
+
+AppsScript URL (this changes with each deploy)
+https://script.google.com/macros/s/AKfycbzgEM9DK32D7f3lngaBqXuJJ__IareA8xUT2pmkwwWdyu18iSumt9LxPJQ0MSep2i9aSQ/exec
+https://script.google.com/macros/s/AKfycbyCOQacQxiJsQvwBl7PvzkYHHWXEHkVMbdhk6UNgi4xsWBOMnGZcCgBVJmDdXzKPOXh2g/exec
+
+GS notes
+
+Private Functions: Append an underscore to the end of server-side function names (e.g., myFunction_()) to prevent them from being called by client-side scripts.
+
+
+note: TABLE needs to be the second part of the url in Airtable (i.e. airtable.bleh/first/secondpart/thirdpart)
+
+This PC\Apple iPhone\Internal Storage\202604__
+
+https://github.com/treadiehq/global-env
+each team should have a pin to 'authenticate'
+
+---
+
+Scope AppScript permissions to only allow write to the relevant Google Sheet
+
+
+General Design Concerns:
+
+Netlify:
+I don't like tokens in front-ends JS - need to pass these securely
+Need to upgrade to used the Team Settings -> Environment variables
+
+Airtable:
+Doesn't appear to be native validation for Airtable (i.e. I can enter integers out of range of holes)
+How are discrepancies / race conditions handled Sheets vs Airtable
+Airtable doesn't support some HTML features dashboard
+
+AppScript:
+Verify if Scope AppScript permissions to only allow write to the relevant Google Sheet
+https://script.google.com/macros/s/AKfycbzgEM9DK32D7f3lngaBqXuJJ__IareA8xUT2pmkwwWdyu18iSumt9LxPJQ0MSep2i9aSQ/exec
