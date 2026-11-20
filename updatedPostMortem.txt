@@ -1,0 +1,62 @@
+In three weeks, we delivered brand visibility for sponsors of an important IT event by developing a scoring application with zero capital expenditure.
+𝗢𝘂𝘁𝗰𝗼𝗺𝗲𝘀
+
+Uptime: 100% (Thanks @Jashim Howlander)
+Integrity: 100% of submissions reached the backend without corruption
+Delivery Cost: $0
+Sponsor Satisfaction: Hundreds of impressions, high remarks, and consistent engagement with the target audience
+
+𝗕𝘂𝘀𝗶𝗻𝗲𝘀𝘀 𝗖𝗼𝗻𝘁𝗲𝘅𝘁
+
+@Lake Norman IT Professionals hosts a flagship disc golf tournament each year with over 200 attendees. 
+A key challenge is maximizing sponsor ROI. Why should a company attend, let alone contribute? 
+
+This is a unique opportunity for business leaders to:
+
+- Develop a personal network of experts who inform their strategy
+- Identify and develop relationships with new customers at low-stakes
+- Demonstrate commitment to serving the community
+- Advertise business services/products to the community
+
+Our app secures several short-term wins: 
+
+- Continuous, unavoidable sponsor impressions in front of high-value attendees
+- Enhanced reputation of host and sponsors
+- Effortless player experience
+
+In the long run, we:
+ 
+- Attract new sponsors and organizations
+- Highlight the relevance of automation and security
+- Provide ongoing projects for early professionals to contribute to
+
+𝗕𝘂𝗶𝗹𝗱𝗶𝗻𝗴 𝗭𝗲𝗿𝗼 𝗗𝗼𝘄𝗻𝘁𝗶𝗺𝗲 𝗳𝗼𝗿 𝗭𝗲𝗿𝗼 𝗗𝗼𝗹𝗹𝗮𝗿𝘀
+
+Our Claude-assisted visual draft required adaptions to become resilient and cost-aware. Consider:
+
+- Disc golf courses are notorious for spotty cellular coverage. Vendor logos must remain visible. 
+- Netlify limits credits for requests and images. We cannot exceed those limits.
+- Scores may be sent in 'bursts', which can lead to failed submissions.  
+
+So we adapted. We handled network outages by making the app retry intelligently. We used Wix to keep logos visible for free and cached images on startup.
+
+To validate this design, I authored a Python script to simulate network outages and burst traffic, and tested at the game site. This confirmed our solution worked in the real world.
+
+𝗦𝗲𝗰𝘂𝗿𝗶𝗻𝗴 𝗦𝗽𝗼𝗻𝘀𝗼𝗿𝘀𝗵𝗶𝗽
+
+Hosting an event for IT / security professionals means a technical failure or security oversight damages the reputation of the host and our sponsors.
+
+That's why we conducted a risk assessment and remediated attack chains that prevent the app from serving its purpose: showcasing our sponsors and submitting scores. 
+
+We implemented alphanumeric whitelists on the frontend and backend. This preserves app integrity against XSS / formula injections.
+
+We stopped unauthorized application modification by hardening repository and account permissions. 
+
+We designed the backend so scores were not overwritten automatically. This includes an immutable audit trail and private score adjustment utilities, allowing formal score changes without disruption.
+
+𝗪𝗵𝗮𝘁'𝘀 𝗡𝗲𝘅𝘁
+We are actively working on v2.0 and open to feedback!
+@Selena Vaughn
+@Joseph Miller
+@Andy James
+
