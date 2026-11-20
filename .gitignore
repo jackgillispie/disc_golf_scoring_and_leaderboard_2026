@@ -3,3 +3,8 @@
 .env
 node_modules/
 app_files_for_netlify/node_modules/
+
+# Local secrets / certificates / credentials
+*.pem
+*.crt
+lknitpdiscgolf2026.txt
