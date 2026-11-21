@@ -9,8 +9,8 @@ A disc golf scoring application built on Google Apps Script and Netlify.
 | Part | Where | Notes |
 |---|---|---|
 | Player scoring app (front end) | `app_files_for_netlify/app/index.html`, hosted on Netlify | Single self-contained file for now |
-| Backend (receives scores, admin tools) | Apps Script project #1: `google_app_script/AppsScript_Code.gs` | Bound to the event's Google Sheet |
-| Leaderboard | Apps Script project #2: `google_app_script/leaderboard_script.gs` + leaderboard HTML | Separate project and deployment |
+| Backend (receives scores, admin tools) | Apps Script project "Disc 2026 Archive": `apps_script/backend/` | Managed with clasp; see `docs/apps-script.md` |
+| Leaderboard | Apps Script project "Disc 2026 Leaderboard": `apps_script/leaderboard/` | Separate project and deployment, managed with clasp |
 | Proxy | Netlify functions (to be rebuilt) | Will carry **all** traffic to Apps Script |
 | Data | Google Sheets (source of truth) | `Brackett's Bluff Tournament 2026.xlsx` is a past-event snapshot with analysis |
 

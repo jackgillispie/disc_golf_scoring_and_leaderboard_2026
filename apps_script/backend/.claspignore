@@ -1,0 +1,5 @@
+# Push only Apps Script source and the manifest
+**/**
+!appsscript.json
+!*.gs
+!*.html
