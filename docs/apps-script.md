@@ -1,11 +1,13 @@
 # Apps Script projects (clasp)
 
-The Apps Script code lives in two separate projects. Each has its own folder and `clasp` config:
+The Apps Script code lives in two separate projects. Each has its own folder and `clasp` config, and each exists in a **staging** and a **production** copy (IDs in `apps_script/environments.json`; see [`deployment.md`](deployment.md)):
 
-| Folder | Apps Script project | Contents |
-|---|---|---|
-| `apps_script/backend/` | **Disc 2026 Archive** (`1TQbjzi9…`) | Score intake (`doPost`), health check (`doGet`), TD Tools menu, leaderboard/hole-summary rebuilds, QR generation |
-| `apps_script/leaderboard/` | **Disc 2026 Leaderboard** (`1dgllqYA…`) | Leaderboard web page (`doGet` serves `leaderboard.html`) |
+| Folder | Contents | Staging project | Production project |
+|---|---|---|---|
+| `apps_script/backend/` | Score intake (`doPost`), health check (`doGet`), TD Tools menu, leaderboard/hole-summary rebuilds, QR generation, smoke tests | Disc 2026 Backend (staging) | Disc 2026 Archive |
+| `apps_script/leaderboard/` | Leaderboard web page (`doGet` serves `leaderboard.html`) | Disc 2026 Leaderboard (staging) | Disc 2026 Leaderboard |
+
+**The `.clasp.json` in each folder points at STAGING.** `clasp push` from a folder only ever updates staging. Production is deployed with `node scripts/deploy-apps-script.js production` or by the GitHub workflow (see `deployment.md`).
 
 **History:** both scripts used to live together in "Disc 2026 Archive". The combined code is saved there as **version 2, "pre-split snapshot"**. The live 2026 event project was taken down; the Archive copy is the source these folders came from.
 
@@ -42,7 +44,9 @@ Updating an existing deployment keeps its URL. Creating a new deployment creates
 
 ## Files in each folder
 
-- `.clasp.json`: links the folder to its Apps Script project by `scriptId`. It's safe to commit; the script ID isn't a credential.
+- `.clasp.json`: links the folder to its **staging** Apps Script project by `scriptId`. It's safe to commit; the script ID isn't a credential.
+- `environment.js`: `getEventSpreadsheet()` and `getEnvironmentName()`, which read the Script Properties `SPREADSHEET_ID` and `ENVIRONMENT`. Both folders hold an identical copy; a unit test enforces this.
+- `smoke_tests.js` (backend only): `runSmokeTests()`, which only runs when `ENVIRONMENT=staging`.
 - `.claspignore`: limits pushes to `appsscript.json`, `*.js`, `*.gs` and `*.html`.
 - Source files use the **`.js`** extension locally so ESLint, Jest and CodeQL can read them. clasp drops the extension on push, so the file names in the online editor are unchanged (e.g. `AppsScript_Code`).
 - `appsscript.json`: the project manifest (time zone, runtime, advanced services, web app access).
@@ -52,5 +56,5 @@ Updating an existing deployment keeps its URL. Creating a new deployment creates
 
 ## Known limitations (to fix in later phases)
 
-- Both projects call `SpreadsheetApp.getActiveSpreadsheet()`. That only works in a script **bound** to a spreadsheet, and both projects are standalone. Until the multi-event registry exists (`PLAN.md`, phase 4), they need either to be bound to the event Sheet or to open it by ID.
+- The spreadsheet is chosen by the `SPREADSHEET_ID` Script Property, one per environment. The multi-event registry replaces this in phase 4.
 - Known bugs found by the unit tests (token format mismatch with the front end, duplicate tokens, and others) are listed as `test.failing` in `tests/unit/backend.test.js`. They're fixed in phase 2.

@@ -45,7 +45,7 @@ function doPost(e) {
       return respond({ status: 'error', message: 'Invalid group token' });
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getEventSpreadsheet();
     ensureSheets(ss);
     writeScore(ss, data);
 
@@ -341,7 +341,7 @@ function colorVsParColumn(sheet) {
 //TODO Add QR function somewhere in here
 
 function populateGroupTokens() {
-  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const ss    = getEventSpreadsheet();
   ensureSheets(ss);
   const sheet = ss.getSheetByName(SHEET_GROUPS);
 
@@ -379,7 +379,7 @@ function createQRCodes(){
 //
 
 
- const ss = SpreadsheetApp.getActiveSpreadsheet();
+ const ss = getEventSpreadsheet();
  const qrSheetHeaders = ["Col1", "Col2", "Col3"]
  setupSheet(ss, "QR Codes", qrSheetHeaders, '#1a2e1a', '#8bc34a' )
  const qr_sheet = ss.getSheetByName("QR Codes")
@@ -517,7 +517,7 @@ qr_sheet.getRange(1,1,qr_print_arr.length,qr_print_arr[1].length).setValues(qr_p
 // MANUAL RECALCULATE — TD runs from Apps Script menu
 // ============================================================
 function recalculateLeaderboard() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getEventSpreadsheet();
   rebuildLeaderboard(ss);
   rebuildHoleSummary(ss);
   SpreadsheetApp.getUi().alert('Leaderboard recalculated successfully.');
@@ -528,7 +528,7 @@ function recalculateLeaderboard() {
 // ============================================================
 function correctScore() {
   const ui = SpreadsheetApp.getUi();
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getEventSpreadsheet();
 
   const groupResp = ui.prompt('Correct a Score', 'Enter the Group name (e.g. Card 3):', ui.ButtonSet.OK_CANCEL);
   if (groupResp.getSelectedButton() !== ui.Button.OK) return;
@@ -583,7 +583,7 @@ function onOpen() {
 }
 
 function initializeSheets() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getEventSpreadsheet();
   ensureSheets(ss);
   SpreadsheetApp.getUi().alert('Sheets initialized. Ready for scoring.');
 }
@@ -596,7 +596,7 @@ function initializeSheets() {
 
 function rebuildSteps(){
 
-const ss = SpreadsheetApp.getActiveSpreadsheet();
+const ss = getEventSpreadsheet();
 ensureSheets(ss);
 rebuildLeaderboard(ss);
 rebuildHoleSummary(ss);

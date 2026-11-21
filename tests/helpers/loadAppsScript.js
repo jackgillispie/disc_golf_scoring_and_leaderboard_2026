@@ -36,6 +36,7 @@ function defaultGlobals() {
     HtmlService: unavailable("HtmlService"),
     ContentService: unavailable("ContentService"),
     Sheets: unavailable("Sheets"),
+    PropertiesService: unavailable("PropertiesService"),
   };
 }
 

@@ -87,7 +87,9 @@ npm run check    # both, same as CI
 
 **CI** (`.github/workflows/`) runs lint and tests, a gitleaks secret scan and CodeQL on every PR and push to `main`. Dependabot opens weekly dependency-update PRs. PRs should be green before merging.
 
-**Not automated yet:** an in-Apps-Script smoke suite against a staging Sheet, and automated deploys, are still to come in phase 1. Until then, also test the scoring flow end to end with `netlify dev` against a **non-production** Apps Script project and Sheet. For burst and offline behaviour, see `tests/stress_test_disc.py`. Describe your manual test steps in the PR.
+**Staging and deploys.** Merges to `main` deploy the Apps Script code to **staging** automatically. Production waits for manual approval. After a backend change reaches staging, run `runSmokeTests` in the staging backend project (see [`docs/deployment.md`](docs/deployment.md)). For front-end changes, test the scoring flow end to end with `netlify dev` against staging. For burst and offline behaviour, see `tests/stress_test_disc.py`. Describe your manual test steps in the PR.
+
+**Front-end lint.** `index.html` and `leaderboard.html` are linted too, but findings there are **warnings** for now. Don't add new ones, and fix nearby ones when you touch that code.
 
 ## Questions
 

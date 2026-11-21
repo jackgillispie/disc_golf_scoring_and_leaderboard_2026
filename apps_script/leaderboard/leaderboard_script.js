@@ -9,7 +9,7 @@ function doGet() {
 
 // Fetches data to be used by the front-end
 function getLeaderboardData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getEventSpreadsheet();
   const sheet = ss.getSheetByName('Leaderboard'); // Adjust to your sheet name
   const data = sheet.getDataRange().getValues();
   return toDisplayRows(data);
