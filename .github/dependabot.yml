@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Dev tooling (Jest, ESLint) at the repo root
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-tooling:
+        patterns: ["*"]
+
+  # Netlify front end / functions
+  - package-ecosystem: npm
+    directory: /app_files_for_netlify
+    schedule:
+      interval: weekly
+
+  # Versions of the GitHub Actions used in .github/workflows
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
