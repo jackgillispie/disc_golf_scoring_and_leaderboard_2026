@@ -1,0 +1,32 @@
+{
+  "staging": {
+    "spreadsheetId": "1-kSPFKPB4rZ3jjidDRpzhM540-bJJhm_-zDMOBYw8EI",
+    "projects": {
+      "backend": {
+        "title": "Disc 2026 Backend (staging)",
+        "scriptId": "1MMbaYT2YfMTx3l-IYWOBA_CuitQ6F5Pr7aSAqETKL4or4rQeperK2d8B",
+        "deploymentId": null
+      },
+      "leaderboard": {
+        "title": "Disc 2026 Leaderboard (staging)",
+        "scriptId": "1MJQdkXU3S8JxfI3HIU2Uj6056iJS-7f_WmUAYq3ZAiy8FYEX8c1LE0Er",
+        "deploymentId": null
+      }
+    }
+  },
+  "production": {
+    "spreadsheetId": null,
+    "projects": {
+      "backend": {
+        "title": "Disc 2026 Archive",
+        "scriptId": "1TQbjzi9sYO1o0eEV9NIk0dnEcZu7oiVBvsP1cf78Lf-gPgWUh6qoCETI",
+        "deploymentId": null
+      },
+      "leaderboard": {
+        "title": "Disc 2026 Leaderboard",
+        "scriptId": "1dgllqYATkdHs1_IEufMjD1x3gwnWyFbQBE-f4rtMoh-JOOJEBukqXLUF",
+        "deploymentId": null
+      }
+    }
+  }
+}
