@@ -1,4 +1,4 @@
-// Unit tests for apps_script/*/environment.js (getEventSpreadsheet, getEnvironmentName).
+// Unit tests for apps_script/*/environment.js (getEventSpreadsheet, getEnvironmentName, getAppBaseUrl).
 const fs = require("fs");
 const path = require("path");
 const { loadAppsScript } = require("../helpers/loadAppsScript");
@@ -19,7 +19,7 @@ function load({ props = {}, active = null } = {}) {
   };
   const env = loadAppsScript(
     ["apps_script/backend/environment.js"],
-    ["getEventSpreadsheet", "getEnvironmentName"],
+    ["getEventSpreadsheet", "getEnvironmentName", "getAppBaseUrl"],
     fakes,
   );
   return { ...env, opened };
@@ -52,6 +52,24 @@ describe("getEnvironmentName", () => {
 
   test("returns 'unset' when missing (smoke tests then refuse to run)", () => {
     expect(load().getEnvironmentName()).toBe("unset");
+  });
+});
+
+describe("getAppBaseUrl", () => {
+  const url = (APP_BASE_URL) => load({ props: { APP_BASE_URL } }).getAppBaseUrl();
+
+  test("returns the APP_BASE_URL property", () => {
+    expect(url("lknitpdiscgolf2026.netlify.app")).toBe("lknitpdiscgolf2026.netlify.app");
+  });
+
+  test("strips scheme, whitespace and trailing slashes", () => {
+    expect(url("  https://staging--site.netlify.app/ ")).toBe("staging--site.netlify.app");
+    expect(url("HTTP://site.netlify.app//")).toBe("site.netlify.app");
+  });
+
+  test("throws a clear error when unset or blank (never defaults to production)", () => {
+    expect(() => load().getAppBaseUrl()).toThrow(/APP_BASE_URL/);
+    expect(() => url("   ")).toThrow(/APP_BASE_URL/);
   });
 });
 

@@ -16,9 +16,10 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: deploy-apps-script
-  cancel-in-progress: false # never interrupt a deploy halfway
+# Concurrency is per job (per environment), not per workflow: a production
+# deploy waiting for approval must not block later staging deploys. Within
+# one environment a running deploy is never interrupted; a newer queued
+# deploy replaces an older queued one, so the latest main wins.
 
 jobs:
   checks:
@@ -38,6 +39,9 @@ jobs:
     needs: checks
     runs-on: ubuntu-latest
     environment: staging
+    concurrency:
+      group: deploy-apps-script-staging
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - id: creds
@@ -71,6 +75,9 @@ jobs:
     needs: staging
     runs-on: ubuntu-latest
     environment: production
+    concurrency:
+      group: deploy-apps-script-production
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - id: creds

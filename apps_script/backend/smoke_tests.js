@@ -45,6 +45,12 @@ function runSmokeTests() {
       assert(res.status === 'alive', 'status was ' + res.status);
     });
 
+    check('APP_BASE_URL is set and is not the production site', () => {
+      const url = getAppBaseUrl(); // throws if unset
+      assert(url !== 'lknitpdiscgolf2026.netlify.app',
+        'staging group links / QR codes would point at the production site');
+    });
+
     check('ensureSheets creates all sheets', () => {
       [SHEET_SCORES, SHEET_LEADERBOARD, SHEET_HOLES, SHEET_GROUPS].forEach(name =>
         assert(ss.getSheetByName(name), 'missing sheet ' + name));

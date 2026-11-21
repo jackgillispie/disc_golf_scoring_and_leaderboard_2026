@@ -37,14 +37,16 @@ The script copies each project folder to a temp dir, writes a `.clasp.json` for 
 
 Both projects find their spreadsheet through `getEventSpreadsheet()` (`apps_script/*/environment.js`). In each project open **Project Settings → Script Properties** and add:
 
-| Project | `SPREADSHEET_ID` | `ENVIRONMENT` |
-|---|---|---|
-| Disc 2026 Backend (staging) | staging sheet ID (in `environments.json`) | `staging` |
-| Disc 2026 Leaderboard (staging) | staging sheet ID | `staging` |
-| Disc 2026 Archive | production sheet ID (when it exists) | `production` |
-| Disc 2026 Leaderboard | production sheet ID (when it exists) | `production` |
+| Project | `SPREADSHEET_ID` | `ENVIRONMENT` | `APP_BASE_URL` |
+|---|---|---|---|
+| Disc 2026 Backend (staging) | staging sheet ID (in `environments.json`) | `staging` | staging scoring app address (see below) |
+| Disc 2026 Leaderboard (staging) | staging sheet ID | `staging` | not needed |
+| Disc 2026 Archive | production sheet ID (when it exists) | `production` | `lknitpdiscgolf2026.netlify.app` |
+| Disc 2026 Leaderboard | production sheet ID (when it exists) | `production` | not needed |
 
 A sheet ID is the long string in its URL: `docs.google.com/spreadsheets/d/<ID>/edit`.
+
+`APP_BASE_URL` is the address of the player scoring app (Netlify). The backend's **TD Tools → Generate group URLs** and **Create QR Codes** build each group's link from it. `https://` and a trailing `/` are optional. There is no default: if it isn't set, those tools stop with an error instead of handing out production links from staging. The smoke tests check it's set, and in staging that it isn't the production site.
 
 ### 2. Deploy account for GitHub Actions
 
@@ -74,6 +76,18 @@ Until `CLASPRC_JSON` is set, the deploy jobs skip with a warning instead of fail
 3. The execution log lists `PASS`/`FAIL` per check. The run fails if any check fails. Test rows are deleted afterwards.
 
 Run the smoke tests after each staging deploy that changes backend behaviour, until they are automated.
+
+## Where each URL lives
+
+The scoring app (Netlify) and the Apps Script backend each need the other's address. The workflow above deploys **only** Apps Script; Netlify publishes `app_files_for_netlify/app` itself (`netlify.toml`).
+
+| Link | Set in | Staging | Production |
+|---|---|---|---|
+| Backend → scoring app (group links, QR codes) | Script Property `APP_BASE_URL` on the backend project | not set up yet: needs a staging Netlify site or branch deploy | `lknitpdiscgolf2026.netlify.app` |
+| Scoring app → backend (score submissions) | `APPS_SCRIPT_URL` constant in `app_files_for_netlify/app/index.html` | none: no staging web-app deployment yet | hard-coded; currently the **old, taken-down** deployment, so it must be updated before the next event |
+| Leaderboard page | the leaderboard project's web-app deployment URL | none yet | none yet |
+
+**Phase 3** replaces the hard-coded `APPS_SCRIPT_URL`: the Netlify proxy holds the backend address on the server (a Netlify environment variable per site or deploy context), and the browser never sees it.
 
 ## Web app deployments
 
