@@ -268,3 +268,45 @@ General issues:
 - **Q14:** confirm the "first to reach the server wins, with admin overrides appended" rule (section A).
 - **Q19/Q20 (done)** on branch `chore/remove-airtable-proxy-gitignore`. The old Airtable token is still in git history, so revoking it at Airtable is still recommended.
 - **The cert file (Q12):** `tests/cert.crt` + `tests/key.pem` sit next to `tests/test_https_server.py`, so they were most likely a self-signed pair for testing the app over HTTPS locally (e.g. testing Geolocation or the phone camera on a LAN). They're safe to delete if that script is no longer used. Either way, they should be git-ignored.
+
+---
+
+## O. Decision log (2026-11-20)
+
+These override the recommendations above where they differ.
+
+| Topic | Decision |
+|---|---|
+| Project layout (Q5) | Backend and leaderboard are **two separate Apps Script projects** |
+| Concurrency (Q7) | **Multiple events at the same time** |
+| Resubmissions (§A) | **First submission to reach the server** counts; admin corrections are **appended override records** (never in-place); resubmissions flagged for review |
+| Event storage (§N) | **One Google Sheet per event** + central registry of event → sheet ID |
+| QR model (§I) | **One QR per player, linked to a team** |
+| Invalid input (§C #13) | **Reject** with a field-level error to the player **and** log the rejected payload to a review tab |
+| Proxy (§J) | **All traffic** (scores, config, webhooks) goes through the Netlify proxy |
+| Repo visibility (§E) | **Public**, so CI uses CodeQL + GitHub secret scanning/push protection + Dependabot + gitleaks |
+| Environments (§E) | **Staging first**: merges deploy to staging; production deploy needs manual approval |
+| Config editing (§G) | **Admin web form** (not hand-edited Sheet tabs), saving to **protected hidden tabs in each event's Sheet** |
+| Map (§H) | **Cached georeferenced course image first**, live tiles later |
+| Location (§H, §L) | **Last submitted hole as baseline; GPS refines on opt-in**; only the inferred hole is sent to the server |
+| Admin auth (§J) | **Signed token + approved Google account** |
+| Data retention (§K) | **Keep personal data until next year's event.** Consent wording must say so explicitly |
+| ROI metrics (§M) | All four: **logo impressions, recommendations shown/accepted, verified vendor visits (QR at vendor hole), opt-in leads** |
+| Unit tests (§D) | **Jest** |
+
+### Revised phase order (replaces §B)
+
+0. Foundation (clasp per project, docs, gitignore): partly done
+1. Tests (Jest) + CI (CodeQL, secret scanning, gitleaks, Dependabot, ESLint) + staging/production deploys
+2. Correctness (resubmission rule, appended corrections, reject-and-log validation, failure modes in §C)
+3. **Auth** (signed per-player tokens, all traffic through the proxy, admin = token + Google account). Moved ahead of config. It needs at least a minimal `eventId` so tokens can be scoped per event.
+4. **Event/course config** via the admin web form, sheet per event + registry
+5. Registration (Wix webhook → proxy → Apps Script; per-player QR)
+6. Rest of the admin interface (corrections, missing-holes matrix, outlier flags, etc.)
+7. Vendor matchup + ROI metrics
+
+### Still open
+
+- **The public repo exposes things today:** group tokens and the Apps Script URL in `index.html` are readable by anyone on GitHub until phase 3 lands. Consider redeploying the Apps Script web app under a new URL once the proxy exists.
+- **ROI metrics and free-tier limits:** collecting all four metrics needs to be checked against Netlify function and Apps Script quotas. This depends on batching counts onto score submissions.
+- **Keeping data until next year:** this needs a privacy notice and an annual deletion step (who runs it, and when).
