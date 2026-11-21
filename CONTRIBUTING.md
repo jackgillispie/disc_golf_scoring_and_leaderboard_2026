@@ -12,7 +12,9 @@ Thanks for helping out. This guide gets you from a fresh clone to a working setu
 | `apps_script/backend/` | Apps Script backend: score intake, TD Tools menu, leaderboard rebuilds |
 | `apps_script/leaderboard/` | Apps Script leaderboard web page |
 | `docs/` | Setup and workflow docs |
-| `tests/` | Token-generation and stress-test utilities (automated tests arrive in phase 1) |
+| `tests/unit/`, `tests/helpers/` | Jest unit tests and the Apps Script loader |
+| `tests/` (other files) | Token-generation and stress-test utilities |
+| `.github/` | CI workflows and Dependabot config |
 | `notes/`, `updatedPostMortem.txt` | Project history and event notes |
 | `PLAN.md`, `recommendations.md`, `questions.md` | Roadmap, decision log and review Q&A |
 
@@ -68,11 +70,24 @@ These are summarised from `PLAN.md`:
 
 ## Testing
 
-Automated tests (Jest for pure logic, plus a small smoke suite inside Apps Script) and CI arrive in **phase 1**. Until then:
+From the repo root:
 
-- Test the scoring flow end to end with `netlify dev` against a **non-production** Apps Script project and Sheet.
-- For burst/offline behaviour, see `tests/stress_test_disc.py`.
-- Describe your manual test steps in the PR.
+```sh
+npm install      # once: installs Jest + ESLint
+npm run lint     # ESLint (Apps Script sources + tests)
+npm test         # Jest unit tests in tests/unit
+npm run check    # both, same as CI
+```
+
+**How the Apps Script code is tested.** Apps Script runs all files of a project in one shared global scope, and it runs on the V8 engine. `tests/helpers/loadAppsScript.js` loads the `.js` files into a Node `vm` sandbox the same way, with Apps Script services (`SpreadsheetApp`, …) stubbed out. So:
+
+- Put logic in **pure functions** (no `SpreadsheetApp`, `ContentService`, etc.) and keep Sheets reads and writes in thin wrapper functions. The pure helpers are marked in each file.
+- Add or extend tests in `tests/unit/` for every behaviour change.
+- **Known bugs** are recorded as `test.failing(...)` with a `KNOWN BUG:` name. Each one states the *correct* behaviour and is expected to fail. When you fix the bug, Jest reports it; change `test.failing` to `test`.
+
+**CI** (`.github/workflows/`) runs lint and tests, a gitleaks secret scan and CodeQL on every PR and push to `main`. Dependabot opens weekly dependency-update PRs. PRs should be green before merging.
+
+**Not automated yet:** an in-Apps-Script smoke suite against a staging Sheet, and automated deploys, are still to come in phase 1. Until then, also test the scoring flow end to end with `netlify dev` against a **non-production** Apps Script project and Sheet. For burst and offline behaviour, see `tests/stress_test_disc.py`. Describe your manual test steps in the PR.
 
 ## Questions
 

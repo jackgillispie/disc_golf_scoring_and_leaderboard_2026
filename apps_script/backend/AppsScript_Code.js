@@ -18,6 +18,17 @@ const SHEET_LEADERBOARD = 'Leaderboard';
 const SHEET_HOLES       = 'Hole Summary';
 const SHEET_GROUPS      = 'Group Tokens';
 
+// Brackett's Bluff layout (hole number, distance in ft, par).
+// Moves to per-event config in phase 4.
+const COURSE_HOLES = [
+  {n:1,dist:276,par:3},{n:2,dist:181,par:3},{n:3,dist:383,par:4},
+  {n:4,dist:252,par:3},{n:5,dist:268,par:3},{n:6,dist:246,par:3},
+  {n:7,dist:298,par:3},{n:8,dist:357,par:3},{n:9,dist:333,par:3},
+  {n:10,dist:274,par:3},{n:11,dist:125,par:3},{n:12,dist:223,par:3},
+  {n:13,dist:208,par:3},{n:14,dist:202,par:3},{n:15,dist:239,par:3},
+  {n:16,dist:279,par:3},{n:17,dist:181,par:3},{n:18,dist:242,par:3}
+];
+
 // 5.16 testing if no spaces works on DuckDuckGo
 // Valid tokens — must match GROUP_TOKENS in the HTML file
 const VALID_TOKENS = ['Aceless-Briars', 'Anhyzer Anvils', 'Ankle-Biters Anonymous', 'Bark Biters', 'Basket Boggarts', 'Basket Breakers', 'Basket Breakers', 'Basket-Hanging Hoodlums', 'Birdie Bandits', 'Bonsai Brigade', 'Bramble Boys', 'Caddy-Cap Crusaders', 'Chain Bangers', 'Chain-Bang Chums', 'Cobblestone Kings', 'Compact Commandos', 'Dahlia Drivers', 'Double-Grip Dwarves', 'Fairway Faeries', 'Fairway Felons', 'Fiends of Fairway', 'Foxglove Flickers', 'Fun-Sized Force', 'Garden Gate Gliders', 'Gnomish Gentry', 'Granite Gliders', 'Grass-Top Gliders', 'Gravel-Pit Putters', 'Grip-Lock Goblins', 'Ground-Level Grifters', 'Half-Pint Phantoms', 'High-Speed Hobgoblins', 'Inch-High Imps', 'Knee-High Knockouts', 'Knee-High Knucklers', 'Leaf Litter Legion', 'Little-League Legends', 'Loft-Shot Lads', 'Low-Profile Pros', 'Micro-Stature Marauders', 'Miniature Mountain-Men', 'Mithril Midrangers', 'Mossy Midrangers', 'Mound-Bound Marauders', 'Mycelium Marauders', 'Noggin Gnomes', 'Overstable Ogres', 'Pebble Pushers', 'Petite-Power Players', 'Petunia Putters', 'Picket-Fence Putters', 'Pint-Sized Putters', 'Pipe Puffers', 'Pocket-Sized Putters', 'Porch Sitters', 'Putter Prowlers', 'Putter-Pocket Pranksters', 'Rose-Thorn Rollers', 'Scramble Scoundrels', 'Shadow-Shortened Scoundrels', 'Shank Shifters', 'Shin-Height Shufflers', 'Short-Range Sharpshooters', 'Slightly-Small Saboteurs', 'Small-Batch Boys', 'Speckled Spores', 'Spore Sprouts', 'Stump-Hitters', 'Tee-Box Terrors', 'Teeny-Tiny Titans', 'The Ace Runners', 'The Chains Chasers', 'The Grass-Stain Gang', 'The Low-Down Dirty Dogs', 'The Minuscule Misfits', 'The Plastic Heavyweights', 'The Roller Rebels', 'The Thicket Throwers', 'Tomahawk Trolls', 'Trellis Tossers', 'Turbo-Putt Trolls', 'Turnover Trowels', 'Verticality Challenged', 'Wee-Folk Warriors', 'Wheelbarrow Wingers', 'Windy Wizards', ];
@@ -30,7 +41,7 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
 
     // Token validation — reject submissions without valid token
-    if (!data.Token || !VALID_TOKENS.includes(data.Token)) {
+    if (!isValidToken(data.Token)) {
       return respond({ status: 'error', message: 'Invalid group token' });
     }
 
@@ -60,8 +71,120 @@ function doPost(e) {
   }
 }
 
-function doGet(e) {
+function doGet() {
   return respond({ status: 'alive', time: new Date().toISOString() });
+}
+
+// ============================================================
+// PURE HELPERS — no Apps Script services; unit-tested with Jest
+// (see tests/unit). Keep Sheets/Content calls out of these.
+// ============================================================
+
+// True when the token is present and on the allow-list.
+function isValidToken(token) {
+  return Boolean(token) && VALID_TOKENS.includes(token);
+}
+
+// Allow-list each submitted field (mitigates leaderboard XSS and
+// formula injection in Sheets). Invalid fields become null.
+// Token is passed through: it is checked by isValidToken() first.
+function sanitizeSubmission(data) {
+  return {
+    "Tournament": /^[A-Za-z0-9 ]+$/.test(data.Tournament) ? data.Tournament : null, // only A-Z 0-9 whitespace
+    "Group": /^[0-9]+[A-Z]$/.test(data.Group) ? data.Group : null, // "1A"
+    "Token": data.Token, // verified earlier, e.g. "Anhyzer Anvils"
+    "Players": /^[A-Za-z0-9 &]+$/.test(data.Players) ? data.Players : null, // whitespace, alphanumerics, &
+    "Hole": /^\d+$/.test(data.Hole) ? data.Hole : null, // 1
+    "Par": /^\d+$/.test(data.Par) ? data.Par : null, // 3
+    "Dist": /^\d+$/.test(data.Dist) ? data.Dist : null, // 276
+    "Score": /^\d+$/.test(data.Score) ? data.Score : null, // 3
+    "VsPar": /^[0-9-]+$/.test(data.VsPar) ? data.VsPar : null, // 0
+    "Timestamp": !isNaN(Date.parse(data.Timestamp)) ? data.Timestamp : null // "2026-05-14T20:37:52.641Z"
+  };
+}
+
+// Row layout for the Raw Scores sheet (matches ensureSheets headers).
+// receivedAt is when the server got it, not when the phone sent it.
+function buildScoreRow(clean, receivedAt) {
+  return [
+    receivedAt,
+    clean.Tournament,
+    clean.Group,
+    clean.Players,
+    clean.Hole,
+    clean.Par,
+    clean.Dist,
+    clean.Score,
+    clean.VsPar,
+    clean.Token
+  ];
+}
+
+// "E" for even, "+n" over par, "-n" under par.
+function formatVsPar(diff) {
+  return diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
+}
+
+// Aggregate Raw Scores rows (header removed) into ranked groups.
+// Only the FIRST row per group + hole counts (sheet order = server
+// arrival order); later resubmissions are ignored.
+function aggregateLeaderboard(rows) {
+  const groups = {};
+  rows.forEach(row => {
+    const group   = String(row[2]);
+    const players = String(row[3]);
+    const par     = Number(row[5]);
+    const score   = Number(row[7]);
+    const hole    = Number(row[4]);
+
+    if (!groups[group]) {
+      groups[group] = { group, players, totalScore: 0, totalPar: 0, holes: new Set() };
+    }
+
+    if (!groups[group].holes.has(hole)) {
+      groups[group].holes.add(hole);
+      groups[group].totalScore += score;
+      groups[group].totalPar   += par;
+      // Keep latest players string
+      groups[group].players = players;
+    }
+  });
+
+  return Object.values(groups)
+    .sort((a, b) => (a.totalScore - a.totalPar) - (b.totalScore - b.totalPar))
+    .map(g => ({
+      group: g.group,
+      players: g.players,
+      totalScore: g.totalScore,
+      totalPar: g.totalPar,
+      diff: g.totalScore - g.totalPar,
+      holesPlayed: g.holes.size
+    }));
+}
+
+// Per-hole statistics rows for the Hole Summary sheet.
+// Note: counts EVERY submission, including resubmissions.
+function summarizeHoles(rows, holes) {
+  return holes.map(h => {
+    const scores = rows
+      .filter(r => Number(r[4]) === h.n)
+      .map(r => Number(r[7]));
+
+    if (scores.length === 0) {
+      return [h.n, h.par, h.dist, 0, '—', '—', 0];
+    }
+
+    const avg     = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const best    = Math.min(...scores);
+    const birdies = scores.filter(s => s <= h.par - 1).length;
+
+    return [
+      h.n, h.par, h.dist, scores.length,
+      Math.round(avg * 10) / 10,
+      best,
+      birdies
+    ];
+  });
 }
 
 function respond(obj) {
@@ -104,32 +227,9 @@ function setupSheet(ss, name, headers, bgColor, fgColor) {
 }
 
 // ============================================================
-// WRITE SCORE — deduplicate by group + hole
+// WRITE SCORE — appends every submission (nothing is deleted)
+// The old mockFunction() XSS payloads now live in tests/unit.
 // ============================================================
-
-
-  // test
-  function mockFunction(){
-  let r = SpreadsheetApp.getActiveSpreadsheet()
-  let s = {
-  "Tournament": "javascript: alert(1)",
-  "Group": "1A",
-  "Token": "<img src=x onerror=alert(\'Token\')>",
-  "Players": "<img src=x onerror=alert(\'Players\')>",
-  "Hole": 18,
-  "Par": 5,
-  "Score": 3,
-  "Dist": 200,
-  "VsPar": '-1000000',
-  "Timestamp": "2026-05-14T20:37:52.641Z"
-  }
-  return writeScore(r,s)
-}
-
-
-
-// test data
-
 
 function writeScore(ss, data) {
 
@@ -151,43 +251,9 @@ function writeScore(ss, data) {
   }
   */
 
-    // 5.14 TODONOW
-    // 5.14 whitelist input to mitigate leaderboard XSS, formula injection in sheets
-    // token gets matched before it gets here
-    // Allow letters, numbers, and space (no tabs): /[a-zA-Z0-9 ]/
-
-
-
-
-let my_data = {
-
-    "Tournament": /^[A-Za-z0-9 ]+$/.test(data.Tournament)? data.Tournament : null, // !!! only allow A-Z 0-9 whitespace
-"Group": /^[0-9]+[A-Z]$/.test(data.Group) ? data.Group : null, // "1A"
-"Token": data.Token, // Verified previous steps "Anhyzer Anvils"
-"Players": /^[A-Za-z0-9 &]+$/.test(data.Players) ? data.Players : null, // "<img src=x onerror=alert('XSS')>" only allow whitespace and alphanumeric characters
-"Hole": /^\d+$/.test(data.Hole) ? data.Hole : null, // 1,
-"Par": /^\d+$/.test(data.Par) ? data.Par : null, // 3,
-"Dist": /^\d+$/.test(data.Dist) ? data.Dist : null, //276,
-"Score": /^\d+$/.test(data.Score) ? data.Score : null, //3,
-"VsPar": /^[0-9-]+$/.test(data.VsPar) ? data.VsPar : null, //0,
-"Timestamp": !isNaN(Date.parse(data.Timestamp)) ? data.Timestamp : null // ;"2026-05-14T20:37:52.641Z"
-
-}
-
-  // Append new score
-  // timestamp here reflects when it hits the server, not when frontend sent submission
-  sheet.appendRow([
-    new Date().toISOString(),
-    my_data.Tournament,
-    my_data.Group,
-    my_data.Players,
-    my_data.Hole,
-    my_data.Par,
-    my_data.Dist,
-    my_data.Score,
-    my_data.VsPar,
-    my_data.Token
-  ]);
+  // Allow-list every field (token was matched before we get here),
+  // then append. Timestamp = when it hits the server.
+  sheet.appendRow(buildScoreRow(sanitizeSubmission(data), new Date().toISOString()));
 
   // colorVsParColumn(sheet);
 }
@@ -207,30 +273,7 @@ function rebuildLeaderboard(ss) {
   const lb  = ss.getSheetByName(SHEET_LEADERBOARD);
 
   const rows = raw.getDataRange().getValues().slice(1);
-  // Aggregate by group
-  const groups = {};
-  rows.forEach(row => {
-    const group   = String(row[2]);
-    const players = String(row[3]);
-    const par     = Number(row[5]);
-    const score   = Number(row[7]);
-    const hole    = Number(row[4]);
-
-    if (!groups[group]) {
-      groups[group] = { group, players, totalScore: 0, totalPar: 0, holes: new Set() };
-    }
-
-    if (!groups[group].holes.has(hole)) {
-      groups[group].holes.add(hole);
-      groups[group].totalScore += score;
-      groups[group].totalPar   += par;
-      // Keep latest players string
-      groups[group].players = players;
-    }
-  });
-
-  const sorted = Object.values(groups)
-    .sort((a, b) => (a.totalScore - a.totalPar) - (b.totalScore - b.totalPar));
+  const sorted = aggregateLeaderboard(rows);
 
   // Clear old data
   if (lb.getLastRow() > 1) {
@@ -240,14 +283,12 @@ function rebuildLeaderboard(ss) {
   const now = new Date().toISOString();
 
   sorted.forEach((g, i) => {
-    const diff    = g.totalScore - g.totalPar;
-    const diffStr = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`;
+    const diff = g.diff;
     lb.appendRow([
-      i + 1, g.group, g.players, g.totalScore, diffStr, g.holes.size, i === 0 ? now : ''
+      i + 1, g.group, g.players, g.totalScore, formatVsPar(diff), g.holesPlayed, i === 0 ? now : ''
     ]);
 
     // Color formatting
-    const placeCell = lb.getRange(i + 2, 1);
     const vsParCell = lb.getRange(i + 2, 5);
 
     if (i === 0) lb.getRange(i + 2, 1, 1, 7).setBackground('#fff8e1');
@@ -270,40 +311,11 @@ function rebuildHoleSummary(ss) {
 
   const rows = raw.getDataRange().getValues().slice(1);
 
-  const HOLES = [
-    {n:1,dist:276,par:3},{n:2,dist:181,par:3},{n:3,dist:383,par:4},
-    {n:4,dist:252,par:3},{n:5,dist:268,par:3},{n:6,dist:246,par:3},
-    {n:7,dist:298,par:3},{n:8,dist:357,par:3},{n:9,dist:333,par:3},
-    {n:10,dist:274,par:3},{n:11,dist:125,par:3},{n:12,dist:223,par:3},
-    {n:13,dist:208,par:3},{n:14,dist:202,par:3},{n:15,dist:239,par:3},
-    {n:16,dist:279,par:3},{n:17,dist:181,par:3},{n:18,dist:242,par:3}
-  ];
-
   if (hs.getLastRow() > 1) {
     hs.getRange(2, 1, hs.getLastRow() - 1, 7).clearContent();
   }
 
-  HOLES.forEach(h => {
-    const scores = rows
-      .filter(r => Number(r[4]) === h.n)
-      .map(r => Number(r[7]));
-
-    if (scores.length === 0) {
-      hs.appendRow([h.n, h.par, h.dist, 0, '—', '—', 0]);
-      return;
-    }
-
-    const avg     = scores.reduce((a,b)=>a+b,0) / scores.length;
-    const best    = Math.min(...scores);
-    const birdies = scores.filter(s => s <= h.par - 1).length;
-
-    hs.appendRow([
-      h.n, h.par, h.dist, scores.length,
-      Math.round(avg * 10) / 10,
-      best,
-      birdies
-    ]);
-  });
+  summarizeHoles(rows, COURSE_HOLES).forEach(row => hs.appendRow(row));
 }
 
 // ============================================================
@@ -368,9 +380,9 @@ function createQRCodes(){
 
 
  const ss = SpreadsheetApp.getActiveSpreadsheet();
- qrSheetHeaders = ["Col1", "Col2", "Col3"]
+ const qrSheetHeaders = ["Col1", "Col2", "Col3"]
  setupSheet(ss, "QR Codes", qrSheetHeaders, '#1a2e1a', '#8bc34a' )
- qr_sheet = ss.getSheetByName("QR Codes")
+ const qr_sheet = ss.getSheetByName("QR Codes")
 
 
 /*
@@ -408,13 +420,10 @@ let total_qr_codes = token.length
 
 let qr_print_arr = []
 let rowFirst = []
-let rowSecond = []
 
 for (let i=0;i<total_qr_codes;i+=2){
 
- let payload = url_base + token[i]["token"]
-
- paddedRow = token.slice(i,i+2)
+ const paddedRow = token.slice(i,i+2)
 
 let rowSecond = Object.assign(["", ""], paddedRow);
 
