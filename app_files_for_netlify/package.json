@@ -4,7 +4,7 @@
   "description": "Disc golf scorer with one-page inline JS, Airtable, AppsScript",
   "dependencies": {
     "axios": "^1.6.0",
-    "dotenv": "^17.4.2"
+    "dotenv": "^18.0.10"
   },
   "author": "Jack Gillispie",
   "license": "ISC"
