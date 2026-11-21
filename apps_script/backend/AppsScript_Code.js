@@ -419,7 +419,6 @@ const token =[{'token': 'Anhyzer-Anvils', 'group': '1A'}, {'token': 'Ankle-Biter
 let total_qr_codes = token.length
 
 let qr_print_arr = []
-let rowFirst = []
 
 for (let i=0;i<total_qr_codes;i+=2){
 
@@ -430,7 +429,7 @@ let rowSecond = Object.assign(["", ""], paddedRow);
 // use null instead of "" to get 'skip' behavior and avoid overwriting existing cells
 // here we want an overwrite, so using "" or the existing value
 
- rowFirst = rowSecond.map((token) => {return token == "" ? "" : `=IMAGE("https://quickchart.io/qr?text=" & "https://" & ENCODEURL("${url_base + token["token"]}"))`})
+ const rowFirst = rowSecond.map((token) => {return token == "" ? "" : `=IMAGE("https://quickchart.io/qr?text=" & "https://" & ENCODEURL("${url_base + token["token"]}"))`})
 rowSecond = rowSecond.map((group) => {return !group ? "" : group["token"] + " " + group["group"]});
  qr_print_arr.push(rowFirst, rowSecond)
 
