@@ -46,7 +46,7 @@ function frontendTokenKeys() {
 const validSubmission = () => ({
   Tournament: "LKNITP Disc Bash 2026",
   Group: "1A",
-  Token: "Anhyzer Anvils",
+  Token: "Anhyzer-Anvils",
   Players: "Alex & Sam",
   Hole: 1,
   Par: 3,
@@ -63,15 +63,14 @@ const rawRow = (group, hole, score, { par = 3, players = "P" } = {}) => [
 
 describe("isValidToken", () => {
   test("accepts a token on the allow-list", () => {
-    expect(isValidToken("Anhyzer Anvils")).toBe(true);
+    expect(isValidToken("Anhyzer-Anvils")).toBe(true);
   });
 
   test.each([undefined, null, "", "Not A Team"])("rejects %p", (token) => {
     expect(isValidToken(token)).toBe(false);
   });
 
-  test.failing("KNOWN BUG: accepts the hyphenated tokens the front end actually sends", () => {
-    // index.html sends e.g. "Anhyzer-Anvils"; VALID_TOKENS has "Anhyzer Anvils".
+  test("accepts every token the front end sends (hyphenated, e.g. \"Anhyzer-Anvils\")", () => {
     for (const token of frontendTokenKeys()) {
       expect(isValidToken(token)).toBe(true);
     }
@@ -80,7 +79,7 @@ describe("isValidToken", () => {
 
 describe("token lists", () => {
   test.failing("KNOWN BUG: VALID_TOKENS has no duplicates", () => {
-    // "Basket Breakers" appears twice.
+    // "Basket-Breakers" appears twice.
     expect(new Set(VALID_TOKENS).size).toBe(VALID_TOKENS.length);
   });
 
@@ -88,6 +87,23 @@ describe("token lists", () => {
     // "Basket-Breakers" maps to 2A and 2B; the later key wins, so 2A can't be used.
     const keys = frontendTokenKeys();
     expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  test("group URLs and QR codes (TD Tools) only hand out tokens the backend accepts", () => {
+    // populateGroupTokens() and createQRCodes() each keep their own
+    // [{token, group}] list; a token the backend rejects means that group's
+    // scores are silently dropped.
+    const src = fs.readFileSync(
+      path.join(__dirname, "..", "..", "apps_script", "backend", "AppsScript_Code.js"),
+      "utf8",
+    );
+    const lists = [...src.matchAll(/^\s*const tokens? ?= ?(\[\{'token'[^\n]*\]);/gm)];
+    expect(lists).toHaveLength(2);
+    for (const [, literal] of lists) {
+      const tokens = [...literal.matchAll(/'token': '([^']+)'/g)].map((m) => m[1]);
+      expect(tokens.length).toBeGreaterThan(0);
+      expect(tokens.filter((t) => !isValidToken(t))).toEqual([]);
+    }
   });
 });
 
@@ -149,7 +165,7 @@ describe("buildScoreRow", () => {
       "1A",                      // Group
       "Alex & Sam",              // Players
       1, 3, 276, 3, 0,           // Hole, Par, Dist, Score, vs Par
-      "Anhyzer Anvils",          // Token
+      "Anhyzer-Anvils",          // Token
     ]);
   });
 });

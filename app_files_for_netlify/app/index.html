@@ -1915,8 +1915,18 @@
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify(payload),
                 };
+                // Apps Script answers HTTP 200 even when it rejects a score
+                // ({"status":"error"}) or when Google serves an HTML
+                // "Access Denied" page, so only a JSON {"status":"ok"} counts
+                // as sent. Anything else keeps the hole "pending" (retried
+                // later) instead of marking a lost score as submitted.
                 return fetchWithRetry(APPS_SCRIPT_URL, my_options)
-                    .then(() => true)
+                    .then((response) => response.json())
+                    .then((body) => {
+                        if (body && body.status === "ok") return true;
+                        console.warn("Score not accepted by backend:", body);
+                        return false;
+                    })
                     .catch(() => false);
             }
 
