@@ -66,7 +66,7 @@ CI logs in to clasp as a **dedicated Google account**, not a personal one. If th
 
 1. Create a Google account for deployments (e.g. a "disc golf deploy bot").
 2. Signed in as that account, turn on the Apps Script API: https://script.google.com/home/usersettings
-3. Share the **four Apps Script projects** with it as **Editor**. Pushing code needs edit access, and there's no narrower role. Also share the **staging spreadsheet**, in case the web app ends up running as the deploy account (see "Web app deployments").
+3. Share the **four Apps Script projects** and each environment's **spreadsheet** with it as **Editor**. Pushing code needs edit access to the projects, and there's no narrower role. The spreadsheets need sharing because the live web apps **run as the deploy account** (see "Web app deployments").
 4. On your machine, log clasp in as the bot, copy its credentials, then switch back:
    ```sh
    clasp logout
@@ -115,9 +115,67 @@ The scoring app (Netlify) and the Apps Script backend each need the other's addr
 
 Both manifests use `"access": "ANYONE_ANONYMOUS"`, because players and spectators aren't signed in to Google. After phase 3, only the proxy needs access. Both also use `"executeAs": "USER_DEPLOYING"`.
 
-Staging has deployments for both projects. Production has none yet. To create one (before an event):
+**Which account the web app runs as.** "User deploying" means whoever last updated the deployment. After the first CI deploy, that's the **deploy account**, and the deploy account then reads and writes the spreadsheet. Two things follow:
 
-1. Push the code to that environment, with `deploy-apps-script.js` or the workflow.
-2. **Authorise the project as its owner first.** Open it in the editor and run any function that uses the spreadsheet, e.g. `getLeaderboardData` in the leaderboard or `runSmokeTests` in staging. A web app that runs as its deployer shows anonymous visitors an "Access Denied" page until the deployer has granted its permissions.
-3. Create the deployment once. Either use **Deploy → New deployment** in the editor (type **Web app**), or, in a temp folder holding a `.clasp.json` for that project, run `clasp create-version "…"` then `clasp create-deployment -V <version> -d "<env> web app"`.
-4. Put its ID in `environments.json` as `deploymentId`. From then on, every deploy updates it in place (same URL), and the Netlify deploy points the scoring app at it.
+- The deploy account needs **Editor on that environment's spreadsheet**.
+- The deploy account must **approve the project's permissions once**. Until it does, anonymous visitors get a Google **"Access Denied"** page (*"You need access"*), even though nothing is wrong with the code. The same page appears when anyone deploys a project they haven't approved. If a web app suddenly shows "Access Denied" after a deploy, check this first.
+
+To approve permissions as the deploy account, open a private window and sign in **only** as the deploy account. Go to https://script.google.com/home → **Shared with me** and open the project. Pick a function (backend: `doGet`; leaderboard: `getLeaderboardData`) and click **Run**. Then click **Review permissions**, pick the deploy account, and choose **Advanced → Go to … (unsafe)** → **Allow**. ("Unsafe" only means Google hasn't verified the app; it's this repo's code.) One approval covers the whole project until its permissions change.
+
+Staging has deployments for both projects, and the deploy account has approved both. Production has none yet; see the checklist below.
+
+## Production go-live checklist
+
+Production has no web app and no site deploy yet. Until it does, every production deploy only pushes Apps Script code, and the Netlify step skips with *"production has no backend deploymentId"*, so the live site is left as it is. To bring production live (before an event):
+
+**1. Production spreadsheet** (comes with the event, phase 4)
+1. Create the event spreadsheet.
+2. Share it with the deploy account as **Editor**.
+
+**2. Script Properties** on **Disc 2026 Archive** and **Disc 2026 Leaderboard**
+
+| Property | Disc 2026 Archive | Disc 2026 Leaderboard |
+|---|---|---|
+| `SPREADSHEET_ID` | the new sheet's ID | the new sheet's ID |
+| `ENVIRONMENT` | `production` | `production` |
+| `APP_BASE_URL` | `lknitpdiscgolf.netlify.app` | not needed |
+
+**3. Approve permissions**
+1. As **yourself (the owner)**, approve both projects: open each one, Run `doGet` / `getLeaderboardData`, and Allow. The first deployment is yours, so this keeps it working until CI takes over.
+2. As the **deploy account**, approve both projects in the same way (see "Which account the web app runs as" above).
+
+**4. Create the two web-app deployments** (once, as the owner)
+
+The latest code must already be in production, which a normal approved deploy does. Then, for each project, in an empty temp folder:
+```sh
+# .clasp.json: {"scriptId": "<production scriptId from environments.json>", "rootDir": ""}
+clasp create-version "production initial web app"
+clasp create-deployment -V <version number printed above> -d "production web app"
+```
+Each command prints a deployment ID starting with `AKfy…`. Alternatively, in the editor use **Deploy → New deployment → Web app**, with "Execute as: Me" and "Who has access: Anyone".
+
+**5. Record the deployment IDs**
+
+In `apps_script/environments.json`, set `production.projects.backend.deploymentId` and `production.projects.leaderboard.deploymentId`. Open a PR and merge it.
+
+**6. Approve the production deploy**
+
+The merge starts the "Deploy" workflow. When production asks for approval, approve it. It then:
+- updates both production web apps to the latest code. From now on they run as the deploy account, which step 3 prepared.
+- builds the scoring app with the production backend URL and publishes it to https://lknitpdiscgolf.netlify.app. This is the first time the production site is deployed by the workflow.
+
+**7. Check it works**
+- `https://script.google.com/macros/s/<backend deploymentId>/exec` returns `{"status":"alive",…}`.
+- `https://script.google.com/macros/s/<leaderboard deploymentId>/exec` shows the leaderboard, not "Access Denied".
+- The page source of https://lknitpdiscgolf.netlify.app contains the production backend URL in `APPS_SCRIPT_URL`.
+- Submit one test score through `https://lknitpdiscgolf.netlify.app/?g=<a group token>`, check it reaches the production sheet, then delete that row. (`runSmokeTests` only runs in staging.)
+
+**8. Keep the leaderboard up to date**
+
+`doPost` only appends to Raw Scores. The Leaderboard and Hole Summary sheets, which the leaderboard page reads, are rebuilt by `rebuildSteps()`. In **Disc 2026 Archive**, open **Triggers** (clock icon) → **Add Trigger**: function `rebuildSteps`, event source **Time-driven**, e.g. every minute during the event. The trigger runs as whoever creates it, so that account needs Editor on the sheet and must have approved the project's permissions. Staging needs the same trigger if you want its leaderboard to update on its own.
+
+**9. Hand out links**
+
+Run **Generate group URLs** (`populateGroupTokens`) and **Create QR Codes** (`createQRCodes`). They use `APP_BASE_URL`, so every link points at https://lknitpdiscgolf.netlify.app.
+
+> **Blocker: TD Tools in standalone projects.** The **TD Tools** menu is added by `onOpen()`, and several tools (Generate group URLs, Recalculate leaderboard, Correct a score, Initialize sheets) show dialogs with `SpreadsheetApp.getUi()`. Both only work in a script **bound** to the spreadsheet, which the old live project was. The backend projects are now standalone, so the event sheet shows no TD Tools menu, and those functions fail at the dialog when run from the editor (`Create QR Codes` has no dialog, so it should still work). This must be solved before the next event. Options: a small bound script in each event sheet that adds the menu and calls the backend as an Apps Script **library**, or making the tools work without a dialog (log the result instead).
