@@ -8,3 +8,6 @@ app_files_for_netlify/node_modules/
 *.pem
 *.crt
 lknitpdiscgolf2026.txt
+
+# Per-environment builds of the scoring app (scripts/build-app.js)
+dist/

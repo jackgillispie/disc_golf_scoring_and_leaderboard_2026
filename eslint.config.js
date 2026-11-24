@@ -52,6 +52,7 @@ module.exports = [
     ignores: [
       "**/node_modules/**",
       "**/.netlify/**",
+      "dist/**", // per-environment app builds (scripts/build-app.js)
       "app_files_for_netlify/eslint.config.js",
       "tests/*.py",
     ],

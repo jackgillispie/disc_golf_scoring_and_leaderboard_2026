@@ -1,15 +1,18 @@
-name: Deploy Apps Script
+name: Deploy
 
-# Staging deploys automatically on every push to main that touches the
-# Apps Script code. Production runs after staging and waits for manual
-# approval (configure required reviewers on the "production" environment).
+# Deploys each environment's Apps Script projects AND its Netlify scoring
+# app. Staging deploys automatically on every push to main that touches
+# either. Production runs after staging and waits for manual approval
+# (required reviewers on the "production" environment).
 # See docs/deployment.md for the one-time setup.
 on:
   push:
     branches: [main]
     paths:
       - "apps_script/**"
-      - "scripts/deploy-apps-script.js"
+      - "app_files_for_netlify/app/**"
+      - "app_files_for_netlify/netlify.toml"
+      - "scripts/**"
       - ".github/workflows/deploy-apps-script.yml"
   workflow_dispatch:
 
@@ -38,7 +41,9 @@ jobs:
     name: Deploy to staging
     needs: checks
     runs-on: ubuntu-latest
-    environment: staging
+    environment:
+      name: staging
+      url: https://lknitpdiscgolfstaging.netlify.app
     concurrency:
       group: deploy-apps-script-staging
       cancel-in-progress: false
@@ -48,18 +53,20 @@ jobs:
         name: Check deploy credentials
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: |
-          if [ -z "$CLASPRC_JSON" ]; then
-            echo "::warning::CLASPRC_JSON secret not set for 'staging'; skipping deploy (see docs/deployment.md)"
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          fi
-      - if: steps.creds.outputs.configured == 'true'
-        uses: actions/setup-node@v4
+          for s in CLASPRC_JSON NETLIFY_AUTH_TOKEN; do
+            if [ -z "${!s}" ]; then
+              echo "::warning::$s secret not set for 'staging'; that part of the deploy is skipped (see docs/deployment.md)"
+              echo "$s=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "$s=true" >> "$GITHUB_OUTPUT"
+            fi
+          done
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - if: steps.creds.outputs.configured == 'true'
+      - if: steps.creds.outputs.CLASPRC_JSON == 'true'
         name: Install clasp and write credentials
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
@@ -67,14 +74,24 @@ jobs:
           npm install -g @google/clasp@3.4.1
           printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json
           chmod 600 ~/.clasprc.json
-      - if: steps.creds.outputs.configured == 'true'
+      - if: steps.creds.outputs.CLASPRC_JSON == 'true'
+        name: Deploy Apps Script
         run: node scripts/deploy-apps-script.js staging
+      - if: steps.creds.outputs.NETLIFY_AUTH_TOKEN == 'true'
+        name: Deploy Netlify app
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          npm install -g netlify-cli@26.0.2
+          node scripts/deploy-netlify.js staging
 
   production:
     name: Deploy to production
     needs: staging
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      url: https://lknitpdiscgolf.netlify.app
     concurrency:
       group: deploy-apps-script-production
       cancel-in-progress: false
@@ -84,18 +101,20 @@ jobs:
         name: Check deploy credentials
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: |
-          if [ -z "$CLASPRC_JSON" ]; then
-            echo "::warning::CLASPRC_JSON secret not set for 'production'; skipping deploy (see docs/deployment.md)"
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          fi
-      - if: steps.creds.outputs.configured == 'true'
-        uses: actions/setup-node@v4
+          for s in CLASPRC_JSON NETLIFY_AUTH_TOKEN; do
+            if [ -z "${!s}" ]; then
+              echo "::warning::$s secret not set for 'production'; that part of the deploy is skipped (see docs/deployment.md)"
+              echo "$s=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "$s=true" >> "$GITHUB_OUTPUT"
+            fi
+          done
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - if: steps.creds.outputs.configured == 'true'
+      - if: steps.creds.outputs.CLASPRC_JSON == 'true'
         name: Install clasp and write credentials
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
@@ -103,5 +122,13 @@ jobs:
           npm install -g @google/clasp@3.4.1
           printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json
           chmod 600 ~/.clasprc.json
-      - if: steps.creds.outputs.configured == 'true'
+      - if: steps.creds.outputs.CLASPRC_JSON == 'true'
+        name: Deploy Apps Script
         run: node scripts/deploy-apps-script.js production
+      - if: steps.creds.outputs.NETLIFY_AUTH_TOKEN == 'true'
+        name: Deploy Netlify app
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          npm install -g netlify-cli@26.0.2
+          node scripts/deploy-netlify.js production

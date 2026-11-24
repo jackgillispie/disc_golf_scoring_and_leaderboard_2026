@@ -33,12 +33,11 @@ Thanks for helping out. This guide gets you from a fresh clone to a working setu
 2. **Apps Script:** follow [`docs/apps-script.md`](docs/apps-script.md) (turn on the Apps Script API, `clasp login`, pull/push workflow).
 3. **Front end:**
    ```sh
-   cd app_files_for_netlify
-   npm install
-   netlify link    # link to the Netlify site (ask the owner for access)
-   netlify dev     # serves app/ locally with functions and redirects
+   node scripts/build-app.js staging   # copies the app to dist/netlify-staging, wired to the staging backend
+   cd dist/netlify-staging
+   netlify dev                         # serves app/ locally with redirects
    ```
-   The app needs a group token in the URL (`?g=<token>`). Check that the backend URL in `index.html` points at the environment you mean to test.
+   The app needs a group token in the URL (`?g=<token>`). Don't paste a backend URL into `index.html`. Its `__APPS_SCRIPT_URL__` placeholder is filled per environment by `scripts/build-app.js` (see [`docs/deployment.md`](docs/deployment.md)).
 
 ## Workflow
 
@@ -87,7 +86,7 @@ npm run check    # both, same as CI
 
 **CI** (`.github/workflows/`) runs lint and tests, a gitleaks secret scan and CodeQL on every PR and push to `main`. Dependabot opens weekly dependency-update PRs. PRs should be green before merging.
 
-**Staging and deploys.** Merges to `main` deploy the Apps Script code to **staging** automatically. Production waits for manual approval. After a backend change reaches staging, run `runSmokeTests` in the staging backend project (see [`docs/deployment.md`](docs/deployment.md)). For front-end changes, test the scoring flow end to end with `netlify dev` against staging. For burst and offline behaviour, see `tests/stress_test_disc.py`. Describe your manual test steps in the PR.
+**Staging and deploys.** Merges to `main` deploy the Apps Script code and the scoring app to **staging** automatically (https://lknitpdiscgolfstaging.netlify.app). Production waits for manual approval. After a backend change reaches staging, run `runSmokeTests` in the staging backend project (see [`docs/deployment.md`](docs/deployment.md)). For front-end changes, test the scoring flow end to end with `netlify dev` against staging. For burst and offline behaviour, see `tests/stress_test_disc.py`. Describe your manual test steps in the PR.
 
 **Front-end lint.** `index.html` and `leaderboard.html` are linted too, but findings there are **warnings** for now. Don't add new ones, and fix nearby ones when you touch that code.
 
