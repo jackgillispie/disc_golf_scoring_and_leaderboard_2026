@@ -78,13 +78,11 @@ describe("isValidToken", () => {
 });
 
 describe("token lists", () => {
-  test.failing("KNOWN BUG: VALID_TOKENS has no duplicates", () => {
-    // "Basket-Breakers" appears twice.
+  test("VALID_TOKENS has no duplicates", () => {
     expect(new Set(VALID_TOKENS).size).toBe(VALID_TOKENS.length);
   });
 
-  test.failing("KNOWN BUG: front-end GROUP_TOKENS keys are unique (else a group is unreachable)", () => {
-    // "Basket-Breakers" maps to 2A and 2B; the later key wins, so 2A can't be used.
+  test("front-end GROUP_TOKENS keys are unique (else a group is unreachable)", () => {
     const keys = frontendTokenKeys();
     expect(new Set(keys).size).toBe(keys.length);
   });
@@ -99,10 +97,22 @@ describe("token lists", () => {
     );
     const lists = [...src.matchAll(/^\s*const tokens? ?= ?(\[\{'token'[^\n]*\]);/gm)];
     expect(lists).toHaveLength(2);
+    const html = fs.readFileSync(
+      path.join(__dirname, "..", "..", "app_files_for_netlify", "app", "index.html"),
+      "utf8",
+    );
+    const appGroup = Object.fromEntries(
+      [...html.matchAll(/^\s*"([^"]+)":\s*\{\s*group:\s*"([^"]+)"/gm)].map((m) => [m[1], m[2]]),
+    );
     for (const [, literal] of lists) {
-      const tokens = [...literal.matchAll(/'token': '([^']+)'/g)].map((m) => m[1]);
+      const pairs = [...literal.matchAll(/'token': '([^']+)', 'group': '([^']+)'/g)].map((m) => [m[1], m[2]]);
+      const tokens = pairs.map(([t]) => t);
       expect(tokens.length).toBeGreaterThan(0);
       expect(tokens.filter((t) => !isValidToken(t))).toEqual([]);
+      expect(new Set(tokens).size).toBe(tokens.length); // one token per group
+      // Same token -> group mapping as the app, so the QR code a group
+      // receives opens the app on that group's starting hole.
+      expect(pairs.filter(([t, g]) => appGroup[t] !== g)).toEqual([]);
     }
   });
 });
