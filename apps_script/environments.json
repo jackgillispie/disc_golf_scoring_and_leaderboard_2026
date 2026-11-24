@@ -1,21 +1,31 @@
 {
   "staging": {
     "spreadsheetId": "1-kSPFKPB4rZ3jjidDRpzhM540-bJJhm_-zDMOBYw8EI",
+    "netlify": {
+      "siteName": "lknitpdiscgolfstaging",
+      "siteId": "6f845ea1-4fbe-42c9-87a3-4a5b7aa33b34",
+      "url": "https://lknitpdiscgolfstaging.netlify.app"
+    },
     "projects": {
       "backend": {
         "title": "Disc 2026 Backend (staging)",
         "scriptId": "1MMbaYT2YfMTx3l-IYWOBA_CuitQ6F5Pr7aSAqETKL4or4rQeperK2d8B",
-        "deploymentId": null
+        "deploymentId": "AKfycbydR6P27wliuOr-I8vVOISqFwjmelKaYvvS4IurVoG8dB5ezAmuXNFJNq2g5OWAYYUD-w"
       },
       "leaderboard": {
         "title": "Disc 2026 Leaderboard (staging)",
         "scriptId": "1MJQdkXU3S8JxfI3HIU2Uj6056iJS-7f_WmUAYq3ZAiy8FYEX8c1LE0Er",
-        "deploymentId": null
+        "deploymentId": "AKfycbxtDG1VUkMLLw4G1KdWcolTInQA3nAUPdc0CA0HtrPji5DwuhcVHBkTrVbCPfPXkc__"
       }
     }
   },
   "production": {
     "spreadsheetId": null,
+    "netlify": {
+      "siteName": "lknitpdiscgolf",
+      "siteId": "bad1f4c6-36ec-4e51-abb7-d0463468dd87",
+      "url": "https://lknitpdiscgolf.netlify.app"
+    },
     "projects": {
       "backend": {
         "title": "Disc 2026 Archive",

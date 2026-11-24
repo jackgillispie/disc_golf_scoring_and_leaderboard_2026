@@ -47,7 +47,7 @@ function runSmokeTests() {
 
     check('APP_BASE_URL is set and is not the production site', () => {
       const url = getAppBaseUrl(); // throws if unset
-      assert(url !== 'lknitpdiscgolf2026.netlify.app',
+      assert(url !== 'lknitpdiscgolf.netlify.app',
         'staging group links / QR codes would point at the production site');
     });
 

@@ -1055,13 +1055,15 @@
 
         <script>
             // ============================================================
-            // CONFIG — paste your deployed URLs here
+            // CONFIG
             // ============================================================
 
             //5.4 active_syncing variable will prevent unnecessary concurrent retry mechanisms
             let active_syncing = false;
-            const APPS_SCRIPT_URL =
-                "https://script.google.com/macros/s/AKfycbzTGPcsapmLm8aOZn6nb8Tt59T3o3yiMeT4suJlLYTQbxaKB_W7q_eqVzaYLzpTFhPgHQ/exec";
+            // Backend web-app URL. Do NOT paste a URL here: the placeholder is
+            // replaced per environment by scripts/build-app.js (staging or
+            // production backend, from apps_script/environments.json).
+            const APPS_SCRIPT_URL = "__APPS_SCRIPT_URL__";
 
             //in case we decide to call appscript from serverless netlify backend vs frontend
             // const netlify_function_name = "save-score";

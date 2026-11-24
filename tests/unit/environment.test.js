@@ -59,7 +59,7 @@ describe("getAppBaseUrl", () => {
   const url = (APP_BASE_URL) => load({ props: { APP_BASE_URL } }).getAppBaseUrl();
 
   test("returns the APP_BASE_URL property", () => {
-    expect(url("lknitpdiscgolf2026.netlify.app")).toBe("lknitpdiscgolf2026.netlify.app");
+    expect(url("lknitpdiscgolf.netlify.app")).toBe("lknitpdiscgolf.netlify.app");
   });
 
   test("strips scheme, whitespace and trailing slashes", () => {

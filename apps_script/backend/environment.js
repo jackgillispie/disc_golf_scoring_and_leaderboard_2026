@@ -29,7 +29,7 @@ function getEnvironmentName() {
 }
 
 // Address of the player scoring app (Netlify) for this environment, from
-// the Script Property APP_BASE_URL, e.g. "lknitpdiscgolf2026.netlify.app".
+// the Script Property APP_BASE_URL, e.g. "lknitpdiscgolf.netlify.app".
 // Returned without scheme or trailing slash: callers add "?g=<token>", and
 // the QR formula adds "https://". No default, so a staging project can
 // never quietly hand out production links.
