@@ -132,11 +132,13 @@ Both manifests use `"access": "ANYONE_ANONYMOUS"`, because players and spectator
 
 To approve permissions as the deploy account, open a private window and sign in **only** as the deploy account. Go to https://script.google.com/home → **Shared with me** and open the project. Pick a function (backend: `doGet`; leaderboard: `getLeaderboardData`) and click **Run**. Then click **Review permissions**, pick the deploy account, and choose **Advanced → Go to … (unsafe)** → **Allow**. ("Unsafe" only means Google hasn't verified the app; it's this repo's code.) One approval covers the whole project until its permissions change.
 
-Staging has deployments for both projects, and the deploy account has approved both. Production has none yet; see the checklist below.
+> **Wrong-account trap.** When several Google accounts are signed in to one browser, the Apps Script editor can **Run** (and create triggers) as the browser's *default* account, even when the page header shows the one you picked. The approval then goes to the wrong account: nothing errors, but the web app still shows "Access Denied". This happened during the production go-live: the backend worked after approval, the leaderboard didn't, because its approval ran as the owner. Use a private window signed in **only** to the intended account. To check, reload the web app's `/exec` URL in a signed-out window; it should load, not show "You need access".
+
+Staging and production both have deployments for both projects, and the deploy account has approved all four.
 
 ## Production go-live checklist
 
-Production has no web app and no site deploy yet. Until it does, every production deploy only pushes Apps Script code, and the Netlify step skips with *"production has no backend deploymentId"*, so the live site is left as it is. To bring production live (before an event):
+Production went live on 2026-11-27 by following these steps. They stay here for a fresh environment or a rebuild. Without a backend `deploymentId`, a production deploy only pushes Apps Script code, and the Netlify step skips with *"production has no backend deploymentId"*. To bring production live (before an event):
 
 **1. Production spreadsheet** (comes with the event, phase 4)
 1. Create the event spreadsheet.
@@ -159,7 +161,7 @@ After the approved deploy, reload the sheet: **TD Tools** appears in the menu ba
 
 **4. Approve permissions**
 1. As **yourself (the owner)**, approve both projects: open each one, Run `doGet` / `getLeaderboardData`, and Allow. The first deployment is yours, so this keeps it working until CI takes over.
-2. As the **deploy account**, approve both projects in the same way (see "Which account the web app runs as" above).
+2. As the **deploy account**, approve both projects in the same way (see "Which account the web app runs as" above). Use a private window signed in only as the deploy account: see the **wrong-account trap** there.
 
 **5. Create the two web-app deployments** (once, as the owner)
 
@@ -190,7 +192,7 @@ The merge starts the "Deploy" workflow. When production asks for approval, appro
 
 **9. Keep the leaderboard up to date**
 
-`doPost` only appends to Raw Scores. The Leaderboard and Hole Summary sheets, which the leaderboard page reads, are rebuilt by `rebuildSteps()`. In **Disc 2026 Archive**, open **Triggers** (clock icon) → **Add Trigger**: function `rebuildSteps`, event source **Time-driven**, e.g. every minute during the event. The trigger runs as whoever creates it, so that account needs Editor on the sheet and must have approved the project's permissions. Staging needs the same trigger if you want its leaderboard to update on its own.
+`doPost` only appends to Raw Scores. The Leaderboard and Hole Summary sheets, which the leaderboard page reads, are rebuilt by `rebuildSteps()`. In **Disc 2026 Archive**, open **Triggers** (clock icon) → **Add Trigger**: function `rebuildSteps`, event source **Time-driven**, e.g. every minute during the event. The trigger runs as whoever creates it, so that account needs Editor on the sheet and must have approved the project's permissions. Create it in a private window signed in only as that account (see the **wrong-account trap** above), and check the trigger list shows the account you expect. Staging needs the same trigger if you want its leaderboard to update on its own.
 
 **10. Hand out links**
 
