@@ -80,6 +80,11 @@ module.exports = [
     languageOptions: { globals: projectGlobals(project) },
   })),
   {
+    // The bound sheet script uses the backend as the library "Backend".
+    files: ["apps_script/sheet_menu/**/*.js"],
+    languageOptions: { globals: { Backend: "readonly" } },
+  },
+  {
     files: ["tests/**/*.js", "scripts/**/*.js", "eslint.config.js"],
     languageOptions: {
       ecmaVersion: 2022,

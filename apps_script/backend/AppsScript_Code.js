@@ -567,19 +567,11 @@ function correctScore() {
 }
 
 // ============================================================
-// ADD CUSTOM MENU TO SPREADSHEET
+// TD TOOLS MENU: built by the script bound to each event sheet
+// (apps_script/sheet_menu), which calls the functions here through
+// the "Backend" library. This project is standalone, so an onOpen()
+// here would never run.
 // ============================================================
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('TD Tools')
-    .addItem('Initialize sheets', 'initializeSheets')
-    .addItem('Generate group URLs', 'populateGroupTokens')
-    .addItem('Create QR Codes', 'createQRCodes')
-    .addSeparator()
-    .addItem('Recalculate leaderboard', 'recalculateLeaderboard')
-    .addItem('Correct a score', 'correctScore')
-    .addToUi();
-}
 
 function initializeSheets() {
   const ss = getEventSpreadsheet();

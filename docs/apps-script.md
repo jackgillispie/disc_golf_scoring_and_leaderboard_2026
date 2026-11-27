@@ -1,11 +1,12 @@
 # Apps Script projects (clasp)
 
-The Apps Script code lives in two separate projects. Each has its own folder and `clasp` config, and each exists in a **staging** and a **production** copy (IDs in `apps_script/environments.json`; see [`deployment.md`](deployment.md)):
+The Apps Script code lives in three projects. Each has its own folder and `clasp` config, and each exists in a **staging** and a **production** copy (IDs in `apps_script/environments.json`; see [`deployment.md`](deployment.md)):
 
 | Folder | Contents | Staging project | Production project |
 |---|---|---|---|
-| `apps_script/backend/` | Score intake (`doPost`), health check (`doGet`), TD Tools menu, leaderboard/hole-summary rebuilds, QR generation, smoke tests | Disc 2026 Backend (staging) | Disc 2026 Archive |
+| `apps_script/backend/` | Score intake (`doPost`), health check (`doGet`), TD tools (run from the sheet menu), leaderboard/hole-summary rebuilds, QR generation, smoke tests | Disc 2026 Backend (staging) | Disc 2026 Archive |
 | `apps_script/leaderboard/` | Leaderboard web page (`doGet` serves `leaderboard.html`) | Disc 2026 Leaderboard (staging) | Disc 2026 Leaderboard |
+| `apps_script/sheet_menu/` | **TD Tools** menu: the script **bound** to the event sheet; forwards each item to the backend (library `Backend`) | bound script of "Disc 2026 Staging" | bound script of the production event sheet (*not created yet*) |
 
 **The `.clasp.json` in each folder points at STAGING.** `clasp push` from a folder only ever updates staging. Production is deployed with `node scripts/deploy-apps-script.js production` or by the GitHub workflow (see `deployment.md`).
 
@@ -18,7 +19,7 @@ The repo is the source of truth. Edit locally, then push. Never edit in the onli
 1. Install Node.js (LTS), then clasp: `npm install -g @google/clasp`. These docs were written against clasp **3.4.1**.
 2. Turn on the Apps Script API for your Google account: https://script.google.com/home/usersettings → **Google Apps Script API: On**. It can take a few minutes to take effect.
 3. Log in: `clasp login`. This opens a browser. Credentials are saved to `~/.clasprc.json` in your home folder. **Never copy that file into the repo.**
-4. Ask the project owner to share both Apps Script projects with your Google account (Editor).
+4. Ask the project owner to share the Apps Script projects with your Google account (Editor).
 
 ## Everyday workflow
 
