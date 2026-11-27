@@ -35,16 +35,16 @@
       "backend": {
         "title": "Disc 2026 Archive",
         "scriptId": "1TQbjzi9sYO1o0eEV9NIk0dnEcZu7oiVBvsP1cf78Lf-gPgWUh6qoCETI",
-        "deploymentId": null
+        "deploymentId": "AKfycbziPEjCIOrqxT__XkgY9zLMz_W1Pbi2oyJDmlOna8i2nVAbLBWdFWpbXeiVB7OYDSNz"
       },
       "leaderboard": {
         "title": "Disc 2026 Leaderboard",
         "scriptId": "1dgllqYATkdHs1_IEufMjD1x3gwnWyFbQBE-f4rtMoh-JOOJEBukqXLUF",
-        "deploymentId": null
+        "deploymentId": "AKfycbwINzSvswNLTmIVmr2YzKJ_hmUo7LXOYp7Ay2kWqcnQq5RS49zEgUm9z8EuWAVsV3lo"
       },
       "sheet_menu": {
         "title": "Production event sheet's bound script (TD Tools menu)",
-        "scriptId": null,
+        "scriptId": "1hFLqJcCthMiLycsXAOj6D7-SFbs6SsC4RW7MMhD2zUqtIo6lRRNrtkhM",
         "deploymentId": null
       }
     }
