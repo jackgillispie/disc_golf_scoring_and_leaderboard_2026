@@ -6,7 +6,7 @@ The Apps Script code lives in three projects. Each has its own folder and `clasp
 |---|---|---|---|
 | `apps_script/backend/` | Score intake (`doPost`), health check (`doGet`), TD tools (run from the sheet menu), leaderboard/hole-summary rebuilds, QR generation, smoke tests | Disc 2026 Backend (staging) | Disc 2026 Archive |
 | `apps_script/leaderboard/` | Leaderboard web page (`doGet` serves `leaderboard.html`) | Disc 2026 Leaderboard (staging) | Disc 2026 Leaderboard |
-| `apps_script/sheet_menu/` | **TD Tools** menu: the script **bound** to the event sheet; forwards each item to the backend (library `Backend`) | bound script of "Disc 2026 Staging" | bound script of the production event sheet (*not created yet*) |
+| `apps_script/sheet_menu/` | **TD Tools** menu: the script **bound** to the event sheet; forwards each item to the backend (library `Backend`) | bound script of "Disc 2026 Staging" | bound script of the production event sheet |
 
 **The `.clasp.json` in each folder points at STAGING.** `clasp push` from a folder only ever updates staging. Production is deployed with `node scripts/deploy-apps-script.js production` or by the GitHub workflow (see `deployment.md`).
 
