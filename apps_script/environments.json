@@ -16,6 +16,11 @@
         "title": "Disc 2026 Leaderboard (staging)",
         "scriptId": "1MJQdkXU3S8JxfI3HIU2Uj6056iJS-7f_WmUAYq3ZAiy8FYEX8c1LE0Er",
         "deploymentId": "AKfycbxtDG1VUkMLLw4G1KdWcolTInQA3nAUPdc0CA0HtrPji5DwuhcVHBkTrVbCPfPXkc__"
+      },
+      "sheet_menu": {
+        "title": "Disc 2026 Staging (sheet's bound script: TD Tools menu)",
+        "scriptId": "13-6VLdQS7Owfhl5udZ6373gnMD9yVsGxMgC3mqOMc7D8NqoIKaiB-qQA",
+        "deploymentId": null
       }
     }
   },
@@ -35,6 +40,11 @@
       "leaderboard": {
         "title": "Disc 2026 Leaderboard",
         "scriptId": "1dgllqYATkdHs1_IEufMjD1x3gwnWyFbQBE-f4rtMoh-JOOJEBukqXLUF",
+        "deploymentId": null
+      },
+      "sheet_menu": {
+        "title": "Production event sheet's bound script (TD Tools menu)",
+        "scriptId": null,
         "deploymentId": null
       }
     }

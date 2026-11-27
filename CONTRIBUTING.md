@@ -9,8 +9,9 @@ Thanks for helping out. This guide gets you from a fresh clone to a working setu
 | `app_files_for_netlify/app/index.html` | Player scoring app (single self-contained file, hosted on Netlify) |
 | `app_files_for_netlify/netlify.toml` | Netlify build, functions and redirect config |
 | `app_files_for_netlify/netlify/functions/` | Netlify functions (configured in `netlify.toml`; currently empty. The proxy to Apps Script is rebuilt here in phase 3) |
-| `apps_script/backend/` | Apps Script backend: score intake, TD Tools menu, leaderboard rebuilds |
+| `apps_script/backend/` | Apps Script backend: score intake, TD tools, leaderboard rebuilds |
 | `apps_script/leaderboard/` | Apps Script leaderboard web page |
+| `apps_script/sheet_menu/` | Script bound to the event sheet: the TD Tools menu (calls the backend as a library) |
 | `docs/` | Setup and workflow docs |
 | `tests/unit/`, `tests/helpers/` | Jest unit tests and the Apps Script loader |
 | `tests/` (other files) | Token-generation and stress-test utilities |

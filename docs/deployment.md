@@ -66,7 +66,7 @@ CI logs in to clasp as a **dedicated Google account**, not a personal one. If th
 
 1. Create a Google account for deployments (e.g. a "disc golf deploy bot").
 2. Signed in as that account, turn on the Apps Script API: https://script.google.com/home/usersettings
-3. Share the **four Apps Script projects** and each environment's **spreadsheet** with it as **Editor**. Pushing code needs edit access to the projects, and there's no narrower role. The spreadsheets need sharing because the live web apps **run as the deploy account** (see "Web app deployments").
+3. Share the **four standalone Apps Script projects** and each environment's **spreadsheet** with it as **Editor**. (The sheet's bound TD Tools script comes with the spreadsheet's sharing.) Pushing code needs edit access to the projects, and there's no narrower role. The spreadsheets need sharing because the live web apps **run as the deploy account** (see "Web app deployments").
 4. On your machine, log clasp in as the bot, copy its credentials, then switch back:
    ```sh
    clasp logout
@@ -111,6 +111,16 @@ The scoring app (Netlify) and the Apps Script backend each need the other's addr
 
 **Phase 3** moves the backend address out of the page. The Netlify proxy holds it on the server, and the browser never sees it.
 
+## TD Tools menu (bound sheet script)
+
+The **TD Tools** menu (Initialize sheets, Generate group URLs, Create QR Codes, Recalculate leaderboard, Correct a score) lives in `apps_script/sheet_menu/`: a tiny script **bound** to each event spreadsheet. A standalone project can't add a menu to a sheet or show its dialogs, so the bound script does that and forwards every item to the backend, which it uses as the Apps Script library **`Backend`**.
+
+- **Same spreadsheet as the web app:** the backend code runs as a library, so it reads the **backend's** Script Properties (`SPREADSHEET_ID` etc.). The bound script needs no properties of its own.
+- **Always current:** the library is in *development mode*, so it runs the backend's latest pushed code (what CI deploys). The trade-off: **everyone who uses the menu needs Editor on that environment's backend project.**
+- **Per environment:** the committed `appsscript.json` points `Backend` at the staging backend. `deploy-apps-script.js` repoints it at the target environment's backend, and pushes it after the backend (`sheet_menu` comes after `backend` in `environments.json`). A project with `scriptId: null` is skipped.
+- **First use:** each TD gets a one-time Google permissions prompt the first time they click a menu item.
+- **Finding a sheet's bound script ID:** in the sheet, **Extensions → Apps Script → Project Settings → Script ID**. Opening Extensions → Apps Script on a sheet without one creates it.
+
 ## Web app deployments
 
 Both manifests use `"access": "ANYONE_ANONYMOUS"`, because players and spectators aren't signed in to Google. After phase 3, only the proxy needs access. Both also use `"executeAs": "USER_DEPLOYING"`.
@@ -140,11 +150,18 @@ Production has no web app and no site deploy yet. Until it does, every productio
 | `ENVIRONMENT` | `production` | `production` |
 | `APP_BASE_URL` | `lknitpdiscgolf.netlify.app` | not needed |
 
-**3. Approve permissions**
+**3. TD Tools menu**
+1. In the production sheet, open **Extensions → Apps Script**. This creates the sheet's bound script. Copy its **Script ID** from **Project Settings**.
+2. Put it in `environments.json` as `production.projects.sheet_menu.scriptId` (same PR as step 6).
+3. Give every TD who will use the menu **Editor** on **Disc 2026 Archive** (see "TD Tools menu" above).
+
+After the approved deploy, reload the sheet: **TD Tools** appears in the menu bar.
+
+**4. Approve permissions**
 1. As **yourself (the owner)**, approve both projects: open each one, Run `doGet` / `getLeaderboardData`, and Allow. The first deployment is yours, so this keeps it working until CI takes over.
 2. As the **deploy account**, approve both projects in the same way (see "Which account the web app runs as" above).
 
-**4. Create the two web-app deployments** (once, as the owner)
+**5. Create the two web-app deployments** (once, as the owner)
 
 The latest code must already be in production, which a normal approved deploy does. Then, for each project, in an empty temp folder:
 ```sh
@@ -154,28 +171,28 @@ clasp create-deployment -V <version number printed above> -d "production web app
 ```
 Each command prints a deployment ID starting with `AKfy…`. Alternatively, in the editor use **Deploy → New deployment → Web app**, with "Execute as: Me" and "Who has access: Anyone".
 
-**5. Record the deployment IDs**
+**6. Record the IDs**
 
-In `apps_script/environments.json`, set `production.projects.backend.deploymentId` and `production.projects.leaderboard.deploymentId`. Open a PR and merge it.
+In `apps_script/environments.json`, set `production.projects.backend.deploymentId`, `production.projects.leaderboard.deploymentId` and `production.projects.sheet_menu.scriptId` (step 3). Open a PR and merge it.
 
-**6. Approve the production deploy**
+**7. Approve the production deploy**
 
 The merge starts the "Deploy" workflow. When production asks for approval, approve it. It then:
+- pushes the TD Tools script to the production sheet.
 - updates both production web apps to the latest code. From now on they run as the deploy account, which step 3 prepared.
 - builds the scoring app with the production backend URL and publishes it to https://lknitpdiscgolf.netlify.app. This is the first time the production site is deployed by the workflow.
 
-**7. Check it works**
+**8. Check it works**
 - `https://script.google.com/macros/s/<backend deploymentId>/exec` returns `{"status":"alive",…}`.
 - `https://script.google.com/macros/s/<leaderboard deploymentId>/exec` shows the leaderboard, not "Access Denied".
 - The page source of https://lknitpdiscgolf.netlify.app contains the production backend URL in `APPS_SCRIPT_URL`.
 - Submit one test score through `https://lknitpdiscgolf.netlify.app/?g=<a group token>`, check it reaches the production sheet, then delete that row. (`runSmokeTests` only runs in staging.)
 
-**8. Keep the leaderboard up to date**
+**9. Keep the leaderboard up to date**
 
 `doPost` only appends to Raw Scores. The Leaderboard and Hole Summary sheets, which the leaderboard page reads, are rebuilt by `rebuildSteps()`. In **Disc 2026 Archive**, open **Triggers** (clock icon) → **Add Trigger**: function `rebuildSteps`, event source **Time-driven**, e.g. every minute during the event. The trigger runs as whoever creates it, so that account needs Editor on the sheet and must have approved the project's permissions. Staging needs the same trigger if you want its leaderboard to update on its own.
 
-**9. Hand out links**
+**10. Hand out links**
 
-Run **Generate group URLs** (`populateGroupTokens`) and **Create QR Codes** (`createQRCodes`). They use `APP_BASE_URL`, so every link points at https://lknitpdiscgolf.netlify.app.
+In the production sheet, run **TD Tools → Generate group URLs** and **TD Tools → Create QR Codes**. They use `APP_BASE_URL`, so every link points at https://lknitpdiscgolf.netlify.app.
 
-> **Blocker: TD Tools in standalone projects.** The **TD Tools** menu is added by `onOpen()`, and several tools (Generate group URLs, Recalculate leaderboard, Correct a score, Initialize sheets) show dialogs with `SpreadsheetApp.getUi()`. Both only work in a script **bound** to the spreadsheet, which the old live project was. The backend projects are now standalone, so the event sheet shows no TD Tools menu, and those functions fail at the dialog when run from the editor (`Create QR Codes` has no dialog, so it should still work). This must be solved before the next event. Options: a small bound script in each event sheet that adds the menu and calls the backend as an Apps Script **library**, or making the tools work without a dialog (log the result instead).

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Push the Apps Script projects to one environment (staging or production).
 //
-//   node scripts/deploy-apps-script.js <staging|production> [--project backend|leaderboard]
+//   node scripts/deploy-apps-script.js <staging|production> [--project backend|leaderboard|sheet_menu]
 //
 // IDs come from apps_script/environments.json. Each project folder is copied
 // to a temp dir with a generated .clasp.json, so the committed .clasp.json
@@ -40,14 +40,35 @@ function clasp(args, cwd) {
   return res.stdout || "";
 }
 
-function deployProject(envName, project, cfg) {
-  if (!cfg.scriptId) fail(`${envName}.${project} has no scriptId`);
+// The committed manifests point any "Backend" library at the STAGING
+// backend (so a plain `clasp push` works for staging). Point it at this
+// environment's backend instead. Returns the manifest text unchanged when
+// it has no such library.
+function manifestForEnvironment(manifestText, envConfig) {
+  const manifest = JSON.parse(manifestText);
+  const libs = (manifest.dependencies && manifest.dependencies.libraries) || [];
+  const backend = libs.find((l) => l.userSymbol === "Backend");
+  if (!backend) return manifestText;
+  const id = envConfig.projects.backend && envConfig.projects.backend.scriptId;
+  if (!id) throw new Error("environment has no backend scriptId for the Backend library");
+  backend.libraryId = id;
+  return JSON.stringify(manifest, null, 2) + "\n";
+}
+
+function deployProject(envName, project, cfg, envConfig) {
+  if (!cfg.scriptId) {
+    // e.g. production's sheet_menu before the event spreadsheet exists.
+    console.log(`\n== ${envName}/${project}: no scriptId configured, skipped`);
+    return false;
+  }
   const src = path.join(APPS_SCRIPT_DIR, project);
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `clasp-${envName}-${project}-`));
   try {
     for (const f of fs.readdirSync(src)) {
       if (PUSHABLE.test(f)) fs.copyFileSync(path.join(src, f), path.join(tmp, f));
     }
+    const manifestPath = path.join(tmp, "appsscript.json");
+    fs.writeFileSync(manifestPath, manifestForEnvironment(fs.readFileSync(manifestPath, "utf8"), envConfig));
     fs.writeFileSync(
       path.join(tmp, ".clasp.json"),
       JSON.stringify({ scriptId: cfg.scriptId, rootDir: "", skipSubdirectories: true }, null, 2),
@@ -68,6 +89,7 @@ function deployProject(envName, project, cfg) {
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
+  return true;
 }
 
 function main() {
@@ -80,8 +102,14 @@ function main() {
   const projects = Object.entries(config[envName].projects).filter(([name]) => !only || name === only);
   if (projects.length === 0) fail(`no project named ${only}`);
 
-  for (const [name, cfg] of projects) deployProject(envName, name, cfg);
-  console.log(`\nDone: ${projects.map(([n]) => n).join(", ")} pushed to ${envName}.`);
+  // Order matters: environments.json lists backend before sheet_menu, so
+  // the library code is pushed before the sheet script that uses it.
+  const pushed = projects.filter(([name, cfg]) => deployProject(envName, name, cfg, config[envName]));
+  console.log(pushed.length
+    ? `\nDone: ${pushed.map(([n]) => n).join(", ")} pushed to ${envName}.`
+    : `\nDone: nothing pushed to ${envName} (no project has a scriptId).`);
 }
 
-main();
+module.exports = { manifestForEnvironment };
+
+if (require.main === module) main();
