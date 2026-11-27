@@ -44,9 +44,9 @@ Today, players get a QR code (a team-specific URL) to submit scores. The backend
 
 ## Roadmap (in order)
 
-0. **Foundation:** `.gitignore`, removal of the old Airtable proxy, `clasp` set up for both Apps Script projects, setup/contributing docs. *(Partly done.)*
-1. **Tests + CI/CD:** refactor logic so it can be unit-tested, Jest tests, security checks, automated staging and production deploys.
-2. **Correctness:** resubmission rule, append-only corrections, reject-and-log validation, the defined failure modes (see `recommendations.md` §C), edge cases.
+0. **Foundation:** `.gitignore`, removal of the old Airtable proxy, `clasp` set up for both Apps Script projects, setup/contributing docs. *(Done.)*
+1. **Tests + CI/CD:** refactor logic so it can be unit-tested, Jest tests, security checks, automated staging and production deploys. *(Done. Production went live 2026-11-27.)*
+2. **Correctness:** resubmission rule, append-only corrections, reject-and-log validation, the defined failure modes (see `recommendations.md` §C), edge cases. *(In progress: first-submission rule and append-only corrections done; resubmission flags, reject-and-log validation and failure modes to do.)*
 3. **Auth:** signed per-player tokens scoped to an event, all traffic through the Netlify proxy, admin Google sign-in. This retires the guessable team-name tokens and the public Apps Script URL.
 4. **Adaptable events and courses:** multi-event support (sheet per event + registry), admin config web form, course data (OpenStreetMap import or our own course builder), scoring rules and branding per event, golf vs disc golf.
 5. **Registration:** Wix sign-up webhook → proxy → Apps Script; per-player QR delivered by email and at check-in. Platform-neutral adapters so other organisations' sign-up tools can plug in.

@@ -17,6 +17,7 @@ const SHEET_SCORES      = 'Raw Scores';
 const SHEET_LEADERBOARD = 'Leaderboard';
 const SHEET_HOLES       = 'Hole Summary';
 const SHEET_GROUPS      = 'Group Tokens';
+const SHEET_CORRECTIONS = 'Corrections';
 
 // Brackett's Bluff layout (hole number, distance in ft, par).
 // Moves to per-event config in phase 4.
@@ -162,8 +163,59 @@ function aggregateLeaderboard(rows) {
     }));
 }
 
-// Per-hole statistics rows for the Hole Summary sheet.
-// Note: counts EVERY submission, including resubmissions.
+// Corrections row: [Timestamp, Group, Hole, Score, Previous Score]
+function groupHoleKey(group, hole) {
+  return String(group) + '|' + Number(hole);
+}
+
+// The score that counts for each group + hole, as Raw Scores-shaped rows:
+// the FIRST submission to reach the server, with Score and vs Par taken
+// from the LATEST correction for that group + hole, if any. Corrections
+// are appended, never edited, so sheet order is correction order.
+// Keeps first-arrival order; ignores corrections with no submission.
+function effectiveRows(rows, corrections) {
+  const latest = {};
+  (corrections || []).forEach(c => { latest[groupHoleKey(c[1], c[2])] = Number(c[3]); });
+
+  const seen = new Set();
+  const out = [];
+  rows.forEach(row => {
+    const key = groupHoleKey(row[2], row[4]);
+    if (seen.has(key)) return; // resubmission: first one counts
+    seen.add(key);
+    if (key in latest) {
+      row = row.slice();
+      row[7] = latest[key];                   // Score
+      row[8] = latest[key] - Number(row[5]);  // vs Par
+    }
+    out.push(row);
+  });
+  return out;
+}
+
+// Validate a TD's correction against the scores on record. Returns
+// { error } or { row }, where row is the Corrections row to append.
+function buildCorrection(group, hole, score, rows, corrections, at) {
+  group = String(group).trim().toUpperCase();
+  hole  = String(hole).trim();
+  score = String(score).trim();
+  if (!/^\d+$/.test(hole))  return { error: 'Hole must be a whole number.' };
+  if (!/^\d+$/.test(score) || Number(score) < 1) {
+    return { error: 'Score must be a whole number of at least 1.' };
+  }
+  const key = groupHoleKey(group, hole);
+  const current = effectiveRows(rows, corrections).find(r => groupHoleKey(r[2], r[4]) === key);
+  if (!current) {
+    return { error: `No score found for ${group} hole ${hole}. Check the group and hole number.` };
+  }
+  if (Number(current[7]) === Number(score)) {
+    return { error: `${group} hole ${hole} is already ${score}. Nothing changed.` };
+  }
+  return { row: [at, group, Number(hole), Number(score), Number(current[7])] };
+}
+
+// Per-hole statistics rows for the Hole Summary sheet. Pass
+// effectiveRows() so each group + hole counts once, with corrections.
 function summarizeHoles(rows, holes) {
   return holes.map(h => {
     const scores = rows
@@ -212,6 +264,19 @@ function ensureSheets(ss) {
   setupSheet(ss, SHEET_GROUPS, [
     'Token','Group','URL','Status'
   ], '#1a2e1a', '#8bc34a');
+
+  // Append-only: written by correctScore(), never edited.
+  setupSheet(ss, SHEET_CORRECTIONS, [
+    'Timestamp','Group','Hole','Score','Previous Score'
+  ], '#1a2e1a', '#8bc34a');
+}
+
+// Raw Scores with resubmissions dropped and corrections applied.
+function readEffectiveRows(ss) {
+  const rows = ss.getSheetByName(SHEET_SCORES).getDataRange().getValues().slice(1);
+  const corr = ss.getSheetByName(SHEET_CORRECTIONS);
+  const corrections = corr ? corr.getDataRange().getValues().slice(1) : [];
+  return effectiveRows(rows, corrections);
 }
 
 function setupSheet(ss, name, headers, bgColor, fgColor) {
@@ -269,11 +334,8 @@ function writeScore(ss, data) {
 // need a way to resubmit the same hole and update the results
 //
 function rebuildLeaderboard(ss) {
-  const raw = ss.getSheetByName(SHEET_SCORES);
   const lb  = ss.getSheetByName(SHEET_LEADERBOARD);
-
-  const rows = raw.getDataRange().getValues().slice(1);
-  const sorted = aggregateLeaderboard(rows);
+  const sorted = aggregateLeaderboard(readEffectiveRows(ss));
 
   // Clear old data
   if (lb.getLastRow() > 1) {
@@ -306,10 +368,8 @@ function rebuildLeaderboard(ss) {
 // REBUILD HOLE SUMMARY
 // ============================================================
 function rebuildHoleSummary(ss) {
-  const raw = ss.getSheetByName(SHEET_SCORES);
-  const hs  = ss.getSheetByName(SHEET_HOLES);
-
-  const rows = raw.getDataRange().getValues().slice(1);
+  const hs   = ss.getSheetByName(SHEET_HOLES);
+  const rows = readEffectiveRows(ss);
 
   if (hs.getLastRow() > 1) {
     hs.getRange(2, 1, hs.getLastRow() - 1, 7).clearContent();
@@ -524,45 +584,50 @@ function recalculateLeaderboard() {
 
 // ============================================================
 // CORRECT A SCORE — TD runs interactively
+// Appends a row to Corrections; Raw Scores is never edited. The latest
+// correction for a group + hole wins, so to undo one, correct it back.
 // ============================================================
 function correctScore() {
   const ui = SpreadsheetApp.getUi();
-  const ss = getEventSpreadsheet();
+  const ask = (msg) => {
+    const resp = ui.prompt('Correct a Score', msg, ui.ButtonSet.OK_CANCEL);
+    return resp.getSelectedButton() === ui.Button.OK ? resp.getResponseText() : null;
+  };
 
-  const groupResp = ui.prompt('Correct a Score', 'Enter the Group name (e.g. Card 3):', ui.ButtonSet.OK_CANCEL);
-  if (groupResp.getSelectedButton() !== ui.Button.OK) return;
+  const group = ask('Enter the group (e.g. 3B):');
+  if (group === null) return;
+  const hole = ask('Enter the hole number (1-18):');
+  if (hole === null) return;
+  const score = ask('Enter the correct score:');
+  if (score === null) return;
 
-  const holeResp = ui.prompt('Correct a Score', 'Enter the Hole number (1-18):', ui.ButtonSet.OK_CANCEL);
-  if (holeResp.getSelectedButton() !== ui.Button.OK) return;
-
-  const scoreResp = ui.prompt('Correct a Score', 'Enter the correct score:', ui.ButtonSet.OK_CANCEL);
-  if (scoreResp.getSelectedButton() !== ui.Button.OK) return;
-
-  const group    = groupResp.getResponseText().trim();
-  const hole     = Number(holeResp.getResponseText().trim());
-  const newScore = Number(scoreResp.getResponseText().trim());
-
-  const sheet = ss.getSheetByName(SHEET_SCORES);
-  const rows  = sheet.getDataRange().getValues();
-  let found   = false;
-
-  for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][2]) === group && Number(rows[i][4]) === hole) {
-      const par = Number(rows[i][5]);
-      sheet.getRange(i + 1, 8).setValue(newScore);        // Score
-      sheet.getRange(i + 1, 9).setValue(newScore - par);  // vs Par
-      found = true;
-      break;
-    }
+  const result = applyCorrection(getEventSpreadsheet(), group, hole, score);
+  if (result.error) {
+    ui.alert(result.error);
+  } else {
+    const [, g, h, s, prev] = result.row;
+    ui.alert(`${g} hole ${h}: ${prev} → ${s}. Logged in the "${SHEET_CORRECTIONS}" sheet; leaderboard updated.`);
   }
+}
 
-  if (found) {
-    colorVsParColumn(sheet);
+// Validate, append to Corrections and rebuild. No UI, so the smoke
+// tests can call it. Returns buildCorrection()'s { error } or { row }.
+function applyCorrection(ss, group, hole, score) {
+  ensureSheets(ss);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000); // two TDs correcting at once
+  try {
+    const rows = ss.getSheetByName(SHEET_SCORES).getDataRange().getValues().slice(1);
+    const corrSheet = ss.getSheetByName(SHEET_CORRECTIONS);
+    const corrections = corrSheet.getDataRange().getValues().slice(1);
+    const result = buildCorrection(group, hole, score, rows, corrections, new Date().toISOString());
+    if (result.error) return result;
+    corrSheet.appendRow(result.row);
     rebuildLeaderboard(ss);
     rebuildHoleSummary(ss);
-    ui.alert('Score corrected and leaderboard updated.');
-  } else {
-    ui.alert('No score found for ' + group + ' Hole ' + hole + '. Check the group name and hole number.');
+    return result;
+  } finally {
+    lock.releaseLock();
   }
 }
 
