@@ -18,6 +18,8 @@ const {
   formatVsPar,
   aggregateLeaderboard,
   summarizeHoles,
+  effectiveRows,
+  buildCorrection,
 } = loadAppsScript(
   ["apps_script/backend/AppsScript_Code.js"],
   [
@@ -29,6 +31,8 @@ const {
     "formatVsPar",
     "aggregateLeaderboard",
     "summarizeHoles",
+    "effectiveRows",
+    "buildCorrection",
   ],
 );
 
@@ -60,6 +64,9 @@ const validSubmission = () => ({
 const rawRow = (group, hole, score, { par = 3, players = "P" } = {}) => [
   "2026-05-14T20:00:00Z", "T", group, players, hole, par, 200, score, score - par, "tok",
 ];
+
+// Corrections row: [Timestamp, Group, Hole, Score, Previous Score]
+const corrRow = (group, hole, score) => ["2026-05-14T21:00:00Z", group, hole, score, 0];
 
 describe("isValidToken", () => {
   test("accepts a token on the allow-list", () => {
@@ -246,9 +253,90 @@ describe("summarizeHoles", () => {
     expect(summarizeHoles([], holes)[1]).toEqual([2, 4, 383, 0, "—", "—", 0]);
   });
 
-  test.failing("KNOWN BUG: resubmissions are not double-counted (should match the leaderboard rule)", () => {
-    const rows = summarizeHoles([rawRow("1A", 1, 3), rawRow("1A", 1, 3)], holes);
+  test("fed effectiveRows, resubmissions are not double-counted (same rule as the leaderboard)", () => {
+    const rows = summarizeHoles(effectiveRows([rawRow("1A", 1, 3), rawRow("1A", 1, 2)]), holes);
     expect(rows[0][3]).toBe(1);
+    expect(rows[0][5]).toBe(3); // first submission's score, not the resubmission's
+  });
+
+  test("fed effectiveRows, uses corrected scores", () => {
+    const rows = summarizeHoles(effectiveRows([rawRow("1A", 1, 5)], [corrRow("1A", 1, 2)]), holes);
+    expect(rows[0]).toEqual([1, 3, 276, 1, 2, 2, 1]);
+  });
+});
+
+describe("effectiveRows (append-only corrections)", () => {
+  test("keeps the first submission per group + hole, in arrival order", () => {
+    const out = effectiveRows([rawRow("1A", 1, 4), rawRow("2B", 1, 3), rawRow("1A", 1, 2), rawRow("1A", 2, 3)]);
+    expect(out.map((r) => [r[2], r[4], r[7]])).toEqual([["1A", 1, 4], ["2B", 1, 3], ["1A", 2, 3]]);
+  });
+
+  test("a correction overrides the score and vs par", () => {
+    const [row] = effectiveRows([rawRow("1A", 1, 5)], [corrRow("1A", 1, 2)]);
+    expect(row[7]).toBe(2);
+    expect(row[8]).toBe(-1);
+  });
+
+  test("the LATEST correction wins (so a correction can be undone by correcting back)", () => {
+    const [row] = effectiveRows([rawRow("1A", 1, 5)], [corrRow("1A", 1, 2), corrRow("1A", 1, 5)]);
+    expect(row[7]).toBe(5);
+  });
+
+  test("never mutates the Raw Scores rows it was given", () => {
+    const raw = [rawRow("1A", 1, 5)];
+    const before = JSON.stringify(raw);
+    effectiveRows(raw, [corrRow("1A", 1, 2)]);
+    expect(JSON.stringify(raw)).toBe(before);
+  });
+
+  test("matches sheet values loosely (hole read as number or string)", () => {
+    const [row] = effectiveRows([rawRow("1A", 1, 5)], [corrRow("1A", "1", "3")]);
+    expect(row[7]).toBe(3);
+  });
+
+  test("ignores corrections for a group + hole with no submission", () => {
+    const out = effectiveRows([rawRow("1A", 1, 3)], [corrRow("2B", 1, 2)]);
+    expect(out).toHaveLength(1);
+    expect(out[0][7]).toBe(3);
+  });
+
+  test("feeds the leaderboard: corrected totals", () => {
+    const result = aggregateLeaderboard(effectiveRows(
+      [rawRow("1A", 1, 5), rawRow("1A", 2, 3)],
+      [corrRow("1A", 1, 3)],
+    ));
+    expect(result[0]).toMatchObject({ totalScore: 6, diff: 0, holesPlayed: 2 });
+  });
+});
+
+describe("buildCorrection", () => {
+  const AT = "2026-11-27T18:00:00.000Z";
+  const raw = [rawRow("1A", 1, 5), rawRow("1A", 1, 4)];
+
+  test("returns the Corrections row: timestamp, group, hole, new score, previous score", () => {
+    expect(buildCorrection("1A", "1", "3", raw, [], AT)).toEqual({ row: [AT, "1A", 1, 3, 5] });
+  });
+
+  test("previous score is the current effective score (after earlier corrections)", () => {
+    expect(buildCorrection("1A", 1, 4, raw, [corrRow("1A", 1, 3)], AT).row[4]).toBe(3);
+  });
+
+  test("normalises the group (trim, upper case)", () => {
+    expect(buildCorrection(" 1a ", 1, 3, raw, [], AT).row[1]).toBe("1A");
+  });
+
+  test.each([
+    ["hole not a number", "1A", "one", "3", /Hole/],
+    ["score not a number", "1A", "1", "three", /Score/],
+    ["score of zero", "1A", "1", "0", /Score/],
+    ["negative score", "1A", "1", "-2", /Score/],
+    ["unknown group", "9Z", "1", "3", /No score found for 9Z hole 1/],
+    ["hole with no submission", "1A", "7", "3", /No score found/],
+    ["same as current score", "1A", "1", "5", /already 5/],
+  ])("rejects %s", (_, group, hole, score, message) => {
+    const result = buildCorrection(group, hole, score, raw, [], AT);
+    expect(result.row).toBeUndefined();
+    expect(result.error).toMatch(message);
   });
 });
 

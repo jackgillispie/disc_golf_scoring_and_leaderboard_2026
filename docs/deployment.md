@@ -119,6 +119,7 @@ The **TD Tools** menu (Initialize sheets, Generate group URLs, Create QR Codes, 
 - **Always current:** the library is in *development mode*, so it runs the backend's latest pushed code (what CI deploys). The trade-off: **everyone who uses the menu needs Editor on that environment's backend project.**
 - **Per environment:** the committed `appsscript.json` points `Backend` at the staging backend. `deploy-apps-script.js` repoints it at the target environment's backend, and pushes it after the backend (`sheet_menu` comes after `backend` in `environments.json`). A project with `scriptId: null` is skipped.
 - **First use:** each TD gets a one-time Google permissions prompt the first time they click a menu item.
+- **Correct a score** never edits **Raw Scores**. It appends a row to the **Corrections** sheet (time, group, hole, new score, previous score) and rebuilds the leaderboard. For each group + hole, the first submission to reach the server counts unless there's a correction, and then the latest correction wins. To undo a correction, correct the score back. Don't edit or delete rows in Raw Scores or Corrections by hand: they are the audit trail.
 - **Finding a sheet's bound script ID:** in the sheet, **Extensions → Apps Script → Project Settings → Script ID**. Opening Extensions → Apps Script on a sheet without one creates it.
 
 ## Web app deployments

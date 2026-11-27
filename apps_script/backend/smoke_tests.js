@@ -52,7 +52,7 @@ function runSmokeTests() {
     });
 
     check('ensureSheets creates all sheets', () => {
-      [SHEET_SCORES, SHEET_LEADERBOARD, SHEET_HOLES, SHEET_GROUPS].forEach(name =>
+      [SHEET_SCORES, SHEET_LEADERBOARD, SHEET_HOLES, SHEET_GROUPS, SHEET_CORRECTIONS].forEach(name =>
         assert(ss.getSheetByName(name), 'missing sheet ' + name));
     });
 
@@ -81,11 +81,27 @@ function runSmokeTests() {
       const groups = ss.getSheetByName(SHEET_LEADERBOARD).getDataRange().getValues().slice(1).map(r => r[1]);
       assert(groups.includes('99Z'), 'group 99Z not on leaderboard');
     });
+
+    check('applyCorrection appends a correction, leaves Raw Scores alone, and the leaderboard uses it', () => {
+      const corrections = ss.getSheetByName(SHEET_CORRECTIONS);
+      const before = corrections.getLastRow();
+      const result = applyCorrection(ss, '99Z', 1, 5); // hole 1 was submitted as 3
+      assert(!result.error, result.error);
+      assert(corrections.getLastRow() === before + 1, 'no Corrections row appended');
+      assert(Number(markerRows().find(r => Number(r[4]) === 1)[7]) === 3, 'Raw Scores was edited');
+      const lb = ss.getSheetByName(SHEET_LEADERBOARD).getDataRange().getValues().slice(1).find(r => r[1] === '99Z');
+      assert(lb && Number(lb[3]) === 8, 'leaderboard total for 99Z: ' + (lb && lb[3]) + ', expected 8 (5 + 3)');
+    });
   } finally {
     // Remove test rows (bottom-up so indexes stay valid) and rebuild.
     const values = raw.getDataRange().getValues();
     for (let i = values.length - 1; i >= 1; i--) {
       if (values[i][1] === marker) raw.deleteRow(i + 1);
+    }
+    const corrections = ss.getSheetByName(SHEET_CORRECTIONS);
+    const corrValues = corrections.getDataRange().getValues();
+    for (let i = corrValues.length - 1; i >= 1; i--) {
+      if (corrValues[i][1] === '99Z') corrections.deleteRow(i + 1);
     }
     rebuildLeaderboard(ss);
     rebuildHoleSummary(ss);
